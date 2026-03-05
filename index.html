@@ -275,7 +275,7 @@ body{font-family:'Roboto',sans-serif;background:var(--grey-bg);color:var(--ink);
     <div class="nav-item" onclick="showView('login-preview')">
       <span class="nav-icon">🖥️</span><span class="nav-label">Login Experience</span>
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="showView('settings')">
       <span class="nav-icon">⚙️</span><span class="nav-label">Settings</span>
     </div>
   </div>
@@ -1564,6 +1564,87 @@ body{font-family:'Roboto',sans-serif;background:var(--grey-bg);color:var(--ink);
   </div>
 </div>
 
+    <!-- ══════════ SETTINGS ══════════ -->
+    <div class="view" id="view-settings">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:860px;">
+
+        <!-- Xero -->
+        <div style="background:#fff;border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+            <div style="width:36px;height:36px;background:#13b5ea;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;">🔗</div>
+            <div><div style="font-weight:700;font-size:15px;">Xero</div><div style="font-size:12px;color:rgba(13,12,44,.4);">Invoice generation & sending</div></div>
+            <div id="xeroStatusDot" style="width:8px;height:8px;border-radius:50%;background:var(--red);margin-left:auto;"></div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:12px;font-weight:700;display:block;margin-bottom:4px;">Client ID</label>
+            <input id="s_xeroClientId" style="width:100%;padding:8px 14px;border:1px solid #e0dedd;border-radius:99px;font-size:13px;" placeholder="Xero OAuth Client ID" />
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="font-size:12px;font-weight:700;display:block;margin-bottom:4px;">Client Secret</label>
+            <input id="s_xeroClientSecret" type="password" style="width:100%;padding:8px 14px;border:1px solid #e0dedd;border-radius:99px;font-size:13px;" placeholder="Xero OAuth Client Secret" />
+          </div>
+          <button class="btn btn-primary" style="width:100%;" onclick="saveSettingsXero()">Save Xero Credentials</button>
+        </div>
+
+        <!-- Stripe -->
+        <div style="background:#fff;border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+            <div style="width:36px;height:36px;background:#635bff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;">💳</div>
+            <div><div style="font-weight:700;font-size:15px;">Stripe</div><div style="font-size:12px;color:rgba(13,12,44,.4);">Payment links & card processing</div></div>
+            <div id="stripeStatusDot" style="width:8px;height:8px;border-radius:50%;background:var(--red);margin-left:auto;"></div>
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="font-size:12px;font-weight:700;display:block;margin-bottom:4px;">Stripe Secret Key</label>
+            <input id="s_stripeKey" type="password" style="width:100%;padding:8px 14px;border:1px solid #e0dedd;border-radius:99px;font-size:13px;" placeholder="sk_live_..." />
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="font-size:12px;font-weight:700;display:block;margin-bottom:4px;">Webhook Secret</label>
+            <input id="s_stripeWebhook" type="password" style="width:100%;padding:8px 14px;border:1px solid #e0dedd;border-radius:99px;font-size:13px;" placeholder="whsec_..." />
+          </div>
+          <button class="btn btn-primary" style="width:100%;" onclick="saveSettingsStripe()">Save Stripe Credentials</button>
+        </div>
+
+        <!-- Billing defaults -->
+        <div style="background:#fff;border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+            <div style="width:36px;height:36px;background:var(--ink);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;">📅</div>
+            <div><div style="font-weight:700;font-size:15px;">Billing Defaults</div><div style="font-size:12px;color:rgba(13,12,44,.4);">Invoice timing & payment terms</div></div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:12px;font-weight:700;display:block;margin-bottom:4px;">Invoice Day of Month</label>
+            <input type="number" value="1" min="1" max="28" style="width:100%;padding:8px 14px;border:1px solid #e0dedd;border-radius:99px;font-size:13px;" />
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="font-size:12px;font-weight:700;display:block;margin-bottom:4px;">Payment Terms (days)</label>
+            <select style="width:100%;padding:8px 14px;border:1px solid #e0dedd;border-radius:99px;font-size:13px;background:#fff;">
+              <option value="14" selected>14 days</option>
+              <option value="20">20 days</option>
+              <option value="30">30 days</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" style="width:100%;">Save Defaults</button>
+        </div>
+
+        <!-- API Keys -->
+        <div style="background:#fff;border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+            <div style="width:36px;height:36px;background:var(--cyan);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;">🔑</div>
+            <div><div style="font-weight:700;font-size:15px;">DFRNT API</div><div style="font-size:12px;color:rgba(13,12,44,.4);">Connection to usage data</div></div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:12px;font-weight:700;display:block;margin-bottom:4px;">Master API Base URL</label>
+            <input value="https://api.urgent.deliverdifferent.com" style="width:100%;padding:8px 14px;border:1px solid #e0dedd;border-radius:99px;font-size:13px;" />
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="font-size:12px;font-weight:700;display:block;margin-bottom:4px;">Admin Bearer Token</label>
+            <input type="password" style="width:100%;padding:8px 14px;border:1px solid #e0dedd;border-radius:99px;font-size:13px;" placeholder="Bearer token for usage queries" />
+          </div>
+          <button class="btn btn-primary" style="width:100%;">Save API Config</button>
+        </div>
+
+      </div>
+    </div>
+
 <script>
 function showView(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -1582,7 +1663,8 @@ function showView(name) {
     health: ['System Health', 'Live status'],
     'tenant-detail': ['Urgent Couriers', 'uc-nz-prod · Enterprise'],
     'link-flow': ['Tenant Linking', 'How user-tenant linking works'],
-    'login-preview': ['Login Experience', 'What users see at login']
+    'login-preview': ['Login Experience', 'What users see at login'],
+    settings: ['Settings', 'Integrations & configuration']
   };
   
   if (titles[name]) {
@@ -1890,11 +1972,43 @@ function saveXeroConfig() {
   alert('✅ Credentials saved locally. Deploy the billing backend to activate Xero + Stripe.');
 }
 
+// ── Settings page helpers ──
+function loadSettingsPage() {
+  const cfg = JSON.parse(localStorage.getItem('dfrnt_xero_config') || '{}');
+  if (document.getElementById('s_xeroClientId')) {
+    document.getElementById('s_xeroClientId').value = cfg.clientId || '';
+    document.getElementById('s_xeroClientSecret').value = cfg.clientSecret || '';
+    document.getElementById('s_stripeKey').value = cfg.stripeKey || '';
+    document.getElementById('s_stripeWebhook').value = cfg.stripeWebhook || '';
+    document.getElementById('xeroStatusDot').style.background = cfg.clientId ? 'var(--green)' : 'var(--red)';
+    document.getElementById('stripeStatusDot').style.background = cfg.stripeKey ? 'var(--green)' : 'var(--red)';
+  }
+}
+function saveSettingsXero() {
+  const cfg = JSON.parse(localStorage.getItem('dfrnt_xero_config') || '{}');
+  cfg.clientId = document.getElementById('s_xeroClientId').value;
+  cfg.clientSecret = document.getElementById('s_xeroClientSecret').value;
+  localStorage.setItem('dfrnt_xero_config', JSON.stringify(cfg));
+  xeroConfig = cfg;
+  document.getElementById('xeroStatusDot').style.background = cfg.clientId ? 'var(--green)' : 'var(--red)';
+  alert('✅ Xero credentials saved.');
+}
+function saveSettingsStripe() {
+  const cfg = JSON.parse(localStorage.getItem('dfrnt_xero_config') || '{}');
+  cfg.stripeKey = document.getElementById('s_stripeKey').value;
+  cfg.stripeWebhook = document.getElementById('s_stripeWebhook').value;
+  localStorage.setItem('dfrnt_xero_config', JSON.stringify(cfg));
+  xeroConfig = cfg;
+  document.getElementById('stripeStatusDot').style.background = cfg.stripeKey ? 'var(--green)' : 'var(--red)';
+  alert('✅ Stripe credentials saved.');
+}
+
 // Auto-render billing when view switches
 const _origShowView = window.showView;
 window.showView = function(view) {
   if (typeof _origShowView === 'function') _origShowView(view);
   if (view === 'billing') setTimeout(renderBilling, 50);
+  if (view === 'settings') setTimeout(loadSettingsPage, 50);
 };
 document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('view-billing')?.style.display !== 'none') renderBilling();
