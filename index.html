@@ -882,32 +882,99 @@ body{font-family:'Roboto',sans-serif;background:var(--grey-bg);color:var(--ink);
 
     <!-- ══════════ BILLING ══════════ -->
     <div class="view" id="view-billing">
-      <div class="billing-period">
-        <label>Billing Period</label>
-        <select class="select" style="width:auto">
-          <option>February 2026</option>
-          <option>January 2026</option>
-          <option>December 2025</option>
-        </select>
-        <button class="btn btn-sm btn-outline">📤 Export CSV</button>
-        <button class="btn btn-sm btn-primary">Generate Invoices</button>
+
+      <!-- Config panel -->
+      <div style="background:#fff;border-radius:var(--radius);padding:18px 22px;margin-bottom:18px;box-shadow:var(--shadow);display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(13,12,44,.35);margin-bottom:4px">Billing Period</div>
+          <select class="select" id="billingPeriod" style="width:auto" onchange="renderBilling()">
+            <option value="2026-03">March 2026</option>
+            <option value="2026-02" selected>February 2026</option>
+            <option value="2026-01">January 2026</option>
+          </select>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-sm btn-outline" onclick="exportCSV()">📤 Export CSV</button>
+          <button class="btn btn-sm btn-outline" onclick="openXeroConfig()">🔗 Xero Settings</button>
+          <button class="btn btn-sm btn-primary" onclick="generateAllInvoices()">⚡ Generate All Invoices</button>
+        </div>
       </div>
-      <div class="billing-total">
-        <div><div class="bt-label">Total Billable (Feb 2026)</div><div class="bt-amount">$18,420.00</div></div>
-        <div style="text-align:right"><div class="bt-label">48,291 deliveries across 12 tenants</div><div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:4px">Rate: $0.38 avg per delivery</div></div>
+
+      <!-- Summary bar -->
+      <div class="billing-total" id="billingSummary">
+        <div><div class="bt-label">Total Billable</div><div class="bt-amount" id="billingTotalAmount">—</div></div>
+        <div style="text-align:right"><div class="bt-label" id="billingTotalMeta">Loading...</div></div>
       </div>
+
+      <!-- Plan legend -->
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+        <div style="background:#fff;border-radius:6px;padding:10px 16px;font-size:12px;box-shadow:var(--shadow);flex:1;min-width:160px;">
+          <div style="font-weight:700;color:var(--orange);margin-bottom:2px">🥇 Gold</div>
+          <div>$1,500/mo · 5,000 inc. · $0.24 overage · max 20k</div>
+        </div>
+        <div style="background:#fff;border-radius:6px;padding:10px 16px;font-size:12px;box-shadow:var(--shadow);flex:1;min-width:160px;">
+          <div style="font-weight:700;color:var(--purple);margin-bottom:2px">💎 Platinum</div>
+          <div>$5,000/mo · 20,000 inc. · $0.13 overage · max 100k</div>
+        </div>
+        <div style="background:#fff;border-radius:6px;padding:10px 16px;font-size:12px;box-shadow:var(--shadow);flex:1;min-width:160px;">
+          <div style="font-weight:700;color:var(--cyan);margin-bottom:2px">🏢 Enterprise</div>
+          <div>Custom pricing · negotiated per tenant</div>
+        </div>
+      </div>
+
+      <!-- Billing table -->
       <div class="table-card">
         <table class="data-table">
           <thead>
-            <tr><th>Tenant</th><th>Plan</th><th>Rate</th><th>Deliveries</th><th>Base Fee</th><th>Usage</th><th>Total</th><th>Status</th></tr>
+            <tr>
+              <th>Tenant</th>
+              <th>Plan</th>
+              <th>Currency</th>
+              <th>Deliveries</th>
+              <th>Included</th>
+              <th>Overage</th>
+              <th>Base Fee</th>
+              <th>Overage Cost</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
           </thead>
-          <tbody>
-            <tr><td><div class="tenant-cell"><div class="tenant-avatar t-uc" style="width:28px;height:28px;font-size:10px">UC</div><span style="font-weight:600">Urgent Couriers</span></div></td><td>Enterprise</td><td>$0.21</td><td>19,842</td><td>$500</td><td>$4,167</td><td style="font-weight:700">$4,667</td><td><span class="badge badge-active">Invoiced</span></td></tr>
-            <tr><td><div class="tenant-cell"><div class="tenant-avatar t-ts" style="width:28px;height:28px;font-size:10px">TS</div><span style="font-weight:600">TransSend</span></div></td><td>Trial</td><td>$0.00</td><td>11,930</td><td>$0</td><td>$0</td><td style="font-weight:700;color:rgba(13,12,44,.35)">$0</td><td><span class="badge badge-trial">Trial</span></td></tr>
-            <tr><td><div class="tenant-cell"><div class="tenant-avatar t-cc" style="width:28px;height:28px;font-size:10px">CC</div><span style="font-weight:600">CrossRoads</span></div></td><td>Growth</td><td>$0.32</td><td>9,403</td><td>$250</td><td>$3,009</td><td style="font-weight:700">$3,259</td><td><span class="badge badge-active">Invoiced</span></td></tr>
-            <tr><td><div class="tenant-cell"><div class="tenant-avatar t-rr" style="width:28px;height:28px;font-size:10px">RR</div><span style="font-weight:600">RushRun</span></div></td><td>Starter</td><td>$0.45</td><td>6,821</td><td>$150</td><td>$3,069</td><td style="font-weight:700">$3,219</td><td><span class="badge" style="background:rgba(245,197,24,.1);color:#c49a00">Pending</span></td></tr>
-          </tbody>
+          <tbody id="billingTableBody"></tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- ══ Xero Config Modal ══ -->
+    <div id="xeroModal" style="display:none;position:fixed;inset:0;background:rgba(13,12,44,.5);z-index:200;display:none;align-items:center;justify-content:center;">
+      <div style="background:#fff;border-radius:12px;padding:28px;width:480px;box-shadow:0 20px 60px rgba(13,12,44,.2);">
+        <h2 style="margin-bottom:6px;font-size:18px;">🔗 Xero Integration</h2>
+        <p style="font-size:13px;color:rgba(13,12,44,.5);margin-bottom:20px;">Connect your Xero account to auto-generate and send invoices.</p>
+        <label style="font-size:12px;font-weight:700;display:block;margin-bottom:4px;">Xero Client ID</label>
+        <input id="xeroClientId" style="width:100%;padding:9px 14px;border:1px solid #e0dedd;border-radius:99px;font-size:13px;margin-bottom:12px;" placeholder="Your Xero OAuth Client ID" />
+        <label style="font-size:12px;font-weight:700;display:block;margin-bottom:4px;">Xero Client Secret</label>
+        <input id="xeroClientSecret" type="password" style="width:100%;padding:9px 14px;border:1px solid #e0dedd;border-radius:99px;font-size:13px;margin-bottom:12px;" placeholder="Your Xero OAuth Client Secret" />
+        <label style="font-size:12px;font-weight:700;display:block;margin-bottom:4px;">Stripe Secret Key</label>
+        <input id="stripeKey" type="password" style="width:100%;padding:9px 14px;border:1px solid #e0dedd;border-radius:99px;font-size:13px;margin-bottom:20px;" placeholder="sk_live_..." />
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button class="btn btn-secondary" onclick="closeXeroConfig()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveXeroConfig()">Save & Connect</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ Edit Usage Modal ══ -->
+    <div id="usageModal" style="display:none;position:fixed;inset:0;background:rgba(13,12,44,.5);z-index:200;align-items:center;justify-content:center;">
+      <div style="background:#fff;border-radius:12px;padding:28px;width:420px;box-shadow:0 20px 60px rgba(13,12,44,.2);">
+        <h2 style="margin-bottom:6px;font-size:18px;" id="usageModalTitle">Edit Usage</h2>
+        <p style="font-size:13px;color:rgba(13,12,44,.5);margin-bottom:20px;">Enter the delivery count for this billing period.</p>
+        <input type="hidden" id="usageModalTenantId" />
+        <label style="font-size:12px;font-weight:700;display:block;margin-bottom:4px;">Deliveries</label>
+        <input id="usageModalCount" type="number" style="width:100%;padding:9px 14px;border:1px solid #e0dedd;border-radius:99px;font-size:13px;margin-bottom:20px;" placeholder="0" />
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button class="btn btn-secondary" onclick="closeUsageModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveUsage()">Save</button>
+        </div>
       </div>
     </div>
 
@@ -1589,6 +1656,250 @@ function closeModal(e, id) {
 function closeModalDirect(id) {
   document.getElementById(id).classList.remove('open');
 }
+
+// ══════════════════════════════════════════════════════
+// BILLING ENGINE
+// ══════════════════════════════════════════════════════
+
+const PLANS = {
+  gold:       { name: 'Gold',       base: 1500, included: 5000,  overage: 0.24, max: 20000 },
+  platinum:   { name: 'Platinum',   base: 5000, included: 20000, overage: 0.13, max: 100000 },
+  enterprise: { name: 'Enterprise', base: null, included: null,  overage: null, max: null },
+};
+
+// Tenant registry — update with real data
+const TENANTS = [
+  { id: 'uc',  name: 'Urgent Couriers',  initials: 'UC', plan: 'platinum',   currency: 'NZD', xeroContactId: '', billingEmail: 'accounts@urgent.co.nz',  customBase: null, customOverage: null },
+  { id: 'am',  name: 'AM Couriers',      initials: 'AM', plan: 'gold',       currency: 'NZD', xeroContactId: '', billingEmail: '',                        customBase: null, customOverage: null },
+  { id: 'ss',  name: 'Starshipit',       initials: 'SS', plan: 'gold',       currency: 'USD', xeroContactId: '', billingEmail: 'taylor.williams@starshipit.com', customBase: null, customOverage: null },
+  { id: 'gss', name: 'GoSweetSpot',      initials: 'GS', plan: 'platinum',   currency: 'USD', xeroContactId: '', billingEmail: 'minal@gosweetspot.com',    customBase: null, customOverage: null },
+  { id: 'en',  name: 'Enterprise Client',initials: 'EC', plan: 'enterprise', currency: 'USD', xeroContactId: '', billingEmail: '',                        customBase: 8000, customOverage: 0.10 },
+];
+
+// Usage store — keyed by tenantId + period (YYYY-MM)
+let usageData = JSON.parse(localStorage.getItem('dfrnt_usage') || '{}');
+
+// Xero/Stripe config
+let xeroConfig = JSON.parse(localStorage.getItem('dfrnt_xero_config') || '{}');
+
+function getUsage(tenantId, period) {
+  return usageData[`${tenantId}_${period}`] ?? Math.floor(Math.random() * 18000 + 2000); // demo fallback
+}
+
+function setUsage(tenantId, period, count) {
+  usageData[`${tenantId}_${period}`] = count;
+  localStorage.setItem('dfrnt_usage', JSON.stringify(usageData));
+}
+
+function calcInvoice(tenant, deliveries) {
+  const plan = PLANS[tenant.plan];
+  if (!plan || tenant.plan === 'enterprise') {
+    const base = tenant.customBase || 0;
+    const overage = tenant.customOverage || 0;
+    const overageCount = Math.max(0, deliveries - 20000);
+    const overageCost = overageCount * overage;
+    return { base, overageCost, total: base + overageCost, overageCount };
+  }
+  const base = plan.base;
+  const overageCount = Math.max(0, deliveries - plan.included);
+  const overageCost = overageCount * plan.overage;
+  return { base, overageCost, total: base + overageCost, overageCount };
+}
+
+function fmt(amount, currency) {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency || 'USD', minimumFractionDigits: 2 }).format(amount);
+}
+
+function renderBilling() {
+  const period = document.getElementById('billingPeriod').value;
+  const tbody = document.getElementById('billingTableBody');
+  let grandTotal = 0;
+  let totalDeliveries = 0;
+  let rows = '';
+
+  TENANTS.forEach(t => {
+    const deliveries = getUsage(t.id, period);
+    const { base, overageCost, total, overageCount } = calcInvoice(t, deliveries);
+    const plan = PLANS[t.plan];
+    const included = plan?.included ?? 20000;
+    const status = getInvoiceStatus(t.id, period);
+    const statusBadge = {
+      sent:    '<span class="badge badge-active">✅ Sent</span>',
+      pending: '<span class="badge" style="background:rgba(245,197,24,.1);color:#c49a00">⏳ Pending</span>',
+      draft:   '<span class="badge" style="background:rgba(13,12,44,.08);color:rgba(13,12,44,.4)">📝 Draft</span>',
+      paid:    '<span class="badge" style="background:rgba(19,185,100,.1);color:var(--green)">💚 Paid</span>',
+    }[status] || '<span class="badge">—</span>';
+
+    const planColor = { gold: 'var(--orange)', platinum: 'var(--purple)', enterprise: 'var(--cyan)' }[t.plan];
+    const planLabel = { gold: '🥇 Gold', platinum: '💎 Platinum', enterprise: '🏢 Enterprise' }[t.plan];
+
+    grandTotal += total;
+    totalDeliveries += deliveries;
+
+    rows += `<tr>
+      <td><div class="tenant-cell"><div class="tenant-avatar" style="width:28px;height:28px;font-size:10px;background:linear-gradient(135deg,var(--cyan),var(--purple))">${t.initials}</div><div><div style="font-weight:600">${t.name}</div><div style="font-size:11px;color:rgba(13,12,44,.4)">${t.billingEmail || '—'}</div></div></div></td>
+      <td><span style="color:${planColor};font-weight:700;font-size:12px">${planLabel}</span></td>
+      <td><span style="font-size:12px;font-weight:600">${t.currency}</span></td>
+      <td><span style="font-weight:600">${deliveries.toLocaleString()}</span> <button onclick="openUsageModal('${t.id}','${period}',${deliveries},'${t.name}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:rgba(13,12,44,.3);margin-left:4px">✏️</button></td>
+      <td style="font-size:12px">${included ? included.toLocaleString() : 'Custom'}</td>
+      <td style="font-size:12px;color:${overageCount > 0 ? 'var(--orange)' : 'rgba(13,12,44,.3)'}">${overageCount > 0 ? '+' + overageCount.toLocaleString() : '—'}</td>
+      <td style="font-size:13px">${fmt(base, t.currency)}</td>
+      <td style="font-size:13px;color:${overageCost > 0 ? 'var(--orange)' : 'rgba(13,12,44,.3)'}">${overageCost > 0 ? fmt(overageCost, t.currency) : '—'}</td>
+      <td style="font-weight:700;font-size:14px">${fmt(total, t.currency)}</td>
+      <td>${statusBadge}</td>
+      <td>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm btn-outline" onclick="generateInvoice('${t.id}','${period}')" title="Generate Xero invoice">📄 Invoice</button>
+          <button class="btn btn-sm btn-outline" onclick="sendPaymentLink('${t.id}','${period}')" title="Send Stripe payment link">💳 Pay</button>
+        </div>
+      </td>
+    </tr>`;
+  });
+
+  tbody.innerHTML = rows;
+  document.getElementById('billingTotalAmount').textContent = fmt(grandTotal, 'USD') + ' est.';
+  document.getElementById('billingTotalMeta').textContent = `${totalDeliveries.toLocaleString()} deliveries across ${TENANTS.length} tenants`;
+}
+
+function getInvoiceStatus(tenantId, period) {
+  const statuses = JSON.parse(localStorage.getItem('dfrnt_invoice_status') || '{}');
+  return statuses[`${tenantId}_${period}`] || 'draft';
+}
+
+function setInvoiceStatus(tenantId, period, status) {
+  const statuses = JSON.parse(localStorage.getItem('dfrnt_invoice_status') || '{}');
+  statuses[`${tenantId}_${period}`] = status;
+  localStorage.setItem('dfrnt_invoice_status', JSON.stringify(statuses));
+}
+
+async function generateInvoice(tenantId, period) {
+  const tenant = TENANTS.find(t => t.id === tenantId);
+  const deliveries = getUsage(tenantId, period);
+  const { base, overageCost, total } = calcInvoice(tenant, deliveries);
+  const plan = PLANS[tenant.plan];
+
+  if (!xeroConfig.clientId) {
+    alert('⚠️ Xero not configured. Click "Xero Settings" to add your credentials.');
+    return;
+  }
+
+  // Build Xero invoice payload
+  const [year, month] = period.split('-');
+  const dueDate = new Date(parseInt(year), parseInt(month), 14); // 14th of following month
+  const dueDateStr = dueDate.toISOString().split('T')[0];
+
+  const invoicePayload = {
+    Type: 'ACCREC',
+    Contact: { ContactID: tenant.xeroContactId || undefined, Name: tenant.name, EmailAddress: tenant.billingEmail },
+    DueDateString: dueDateStr,
+    CurrencyCode: tenant.currency,
+    Status: 'AUTHORISED',
+    Reference: `DFRNT-${tenantId.toUpperCase()}-${period}`,
+    LineItems: [
+      { Description: `DFRNT Platform — ${plan?.name || 'Enterprise'} Plan (${period})`, Quantity: 1, UnitAmount: base, AccountCode: '200' },
+      ...(overageCost > 0 ? [{ Description: `Overage deliveries (${deliveries.toLocaleString()} total, ${plan?.included?.toLocaleString() || 20000} included)`, Quantity: 1, UnitAmount: overageCost, AccountCode: '200' }] : [])
+    ]
+  };
+
+  // Show what would be sent (real implementation would POST to Xero API via backend)
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(13,12,44,.6);z-index:300;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `<div style="background:#fff;border-radius:12px;padding:28px;width:560px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(13,12,44,.2)">
+    <h2 style="margin-bottom:4px">📄 Xero Invoice Preview</h2>
+    <p style="font-size:13px;color:rgba(13,12,44,.4);margin-bottom:16px">${tenant.name} · ${period} · Due ${dueDateStr}</p>
+    <div style="background:#f4f2f1;border-radius:8px;padding:16px;font-family:monospace;font-size:12px;white-space:pre-wrap;margin-bottom:16px">${JSON.stringify(invoicePayload, null, 2)}</div>
+    <div style="background:rgba(254,129,26,.08);border:1px solid rgba(254,129,26,.2);border-radius:8px;padding:12px;font-size:12px;margin-bottom:16px">
+      ⚠️ <strong>Note:</strong> Xero OAuth flow runs server-side. This preview shows the payload that will be sent. To complete the integration, deploy the billing backend with your Xero credentials.
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="this.closest('div[style]').remove()">Close</button>
+      <button class="btn btn-primary" onclick="markInvoiceSent('${tenantId}','${period}');this.closest('div[style]').remove()">✅ Mark as Sent</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+function markInvoiceSent(tenantId, period) {
+  setInvoiceStatus(tenantId, period, 'sent');
+  renderBilling();
+}
+
+function sendPaymentLink(tenantId, period) {
+  const tenant = TENANTS.find(t => t.id === tenantId);
+  const stripeKey = xeroConfig.stripeKey;
+  if (!stripeKey) {
+    alert('⚠️ Stripe not configured. Click "Xero Settings" and add your Stripe key.');
+    return;
+  }
+  const deliveries = getUsage(tenantId, period);
+  const { total } = calcInvoice(tenant, deliveries);
+  alert(`💳 Stripe payment link would be created for ${tenant.name}: ${fmt(total, tenant.currency)}\n\nThis will send a hosted checkout link to ${tenant.billingEmail || '(no email set)'}.\n\nFull Stripe integration activates once the billing backend is deployed.`);
+}
+
+function generateAllInvoices() {
+  const period = document.getElementById('billingPeriod').value;
+  if (!confirm(`Generate invoices for all ${TENANTS.length} tenants for ${period}?`)) return;
+  TENANTS.forEach(t => setInvoiceStatus(t.id, period, 'sent'));
+  renderBilling();
+  alert(`✅ ${TENANTS.length} invoices marked as generated for ${period}.`);
+}
+
+function exportCSV() {
+  const period = document.getElementById('billingPeriod').value;
+  let csv = 'Tenant,Plan,Currency,Deliveries,Base Fee,Overage Cost,Total,Status\n';
+  TENANTS.forEach(t => {
+    const deliveries = getUsage(t.id, period);
+    const { base, overageCost, total } = calcInvoice(t, deliveries);
+    const status = getInvoiceStatus(t.id, period);
+    csv += `"${t.name}","${PLANS[t.plan]?.name || 'Enterprise'}","${t.currency}",${deliveries},${base},${overageCost.toFixed(2)},${total.toFixed(2)},"${status}"\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `dfrnt-billing-${period}.csv`; a.click();
+}
+
+function openUsageModal(tenantId, period, current, name) {
+  document.getElementById('usageModalTenantId').value = `${tenantId}|${period}`;
+  document.getElementById('usageModalTitle').textContent = `Edit Usage — ${name}`;
+  document.getElementById('usageModalCount').value = current;
+  document.getElementById('usageModal').style.display = 'flex';
+}
+function closeUsageModal() { document.getElementById('usageModal').style.display = 'none'; }
+function saveUsage() {
+  const [tenantId, period] = document.getElementById('usageModalTenantId').value.split('|');
+  const count = parseInt(document.getElementById('usageModalCount').value) || 0;
+  setUsage(tenantId, period, count);
+  closeUsageModal();
+  renderBilling();
+}
+
+function openXeroConfig() {
+  document.getElementById('xeroClientId').value = xeroConfig.clientId || '';
+  document.getElementById('xeroClientSecret').value = xeroConfig.clientSecret || '';
+  document.getElementById('stripeKey').value = xeroConfig.stripeKey || '';
+  document.getElementById('xeroModal').style.display = 'flex';
+}
+function closeXeroConfig() { document.getElementById('xeroModal').style.display = 'none'; }
+function saveXeroConfig() {
+  xeroConfig = {
+    clientId: document.getElementById('xeroClientId').value,
+    clientSecret: document.getElementById('xeroClientSecret').value,
+    stripeKey: document.getElementById('stripeKey').value,
+  };
+  localStorage.setItem('dfrnt_xero_config', JSON.stringify(xeroConfig));
+  closeXeroConfig();
+  alert('✅ Credentials saved locally. Deploy the billing backend to activate Xero + Stripe.');
+}
+
+// Auto-render billing when view switches
+const _origShowView = window.showView;
+window.showView = function(view) {
+  if (typeof _origShowView === 'function') _origShowView(view);
+  if (view === 'billing') setTimeout(renderBilling, 50);
+};
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('view-billing')?.style.display !== 'none') renderBilling();
+});
 </script>
 </body>
 </html>
