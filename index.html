@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DFRNT Master Controller — Tenant & User Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0d0c2c;--cyan:#3bc7f4;--grey-bg:#f4f2f1;--white:#ffffff;--green:#13b964;--orange:#fe811a;--red:#dc3246;--purple:#824ae0;--blue:#2a4eff;--yellow:#f5c518;--shadow:0 2px 8px rgba(13,12,44,.08);--radius:8px;--sidebar-w:260px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Roboto',sans-serif;background:var(--grey-bg);color:var(--ink);display:flex;height:100vh;overflow:hidden}
+
+/* Sidebar */
+.sidebar{width:var(--sidebar-w);background:var(--ink);color:var(--white);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-brand{padding:24px 20px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.08)}
+.logo-mark{width:36px;height:36px;background:var(--cyan);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:var(--ink);flex-shrink:0}
+.sidebar-brand .brand-text{font-weight:900;font-size:16px}
+.sidebar-brand .brand-text em{font-style:normal;color:var(--cyan)}
+.sidebar-brand .brand-sub{font-size:10px;color:rgba(255,255,255,.3);font-weight:400;letter-spacing:.5px;text-transform:uppercase;margin-top:1px}
+.sidebar-nav{flex:1;overflow-y:auto;padding:12px 0}
+.nav-section-label{padding:8px 20px 4px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.2)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;color:rgba(255,255,255,.55);font-size:13.5px;font-weight:500;cursor:pointer;transition:all .15s;user-select:none;text-decoration:none}
+.nav-item:hover{background:rgba(255,255,255,.04);color:rgba(255,255,255,.8)}
+.nav-item.active{background:rgba(59,199,244,.1);color:var(--cyan)}
+.nav-icon{width:20px;text-align:center;font-size:15px;flex-shrink:0}
+.nav-label{flex:1}
+.nav-badge{padding:2px 8px;border-radius:50px;font-size:9px;font-weight:700;flex-shrink:0}
+.badge-count{background:var(--cyan);color:var(--ink)}
+.badge-alert{background:var(--red);color:var(--white)}
+.sidebar-footer{padding:14px 20px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
+.sidebar-footer .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--white);flex-shrink:0}
+.sidebar-footer .user-info .name{font-size:13px;font-weight:500;color:rgba(255,255,255,.8)}
+.sidebar-footer .user-info .role{font-size:11px;color:rgba(255,255,255,.3)}
+
+/* Main */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--white);padding:18px 32px;border-bottom:1px solid rgba(13,12,44,.06);flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.topbar-left h1{font-size:20px;font-weight:700}
+.topbar-left .subtitle{font-size:13px;color:rgba(13,12,44,.4);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.content{flex:1;overflow-y:auto;padding:24px 32px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:50px;font-family:inherit;font-size:13px;font-weight:500;border:none;cursor:pointer;transition:all .15s;text-decoration:none;white-space:nowrap}
+.btn-primary{background:var(--cyan);color:var(--white)}
+.btn-primary:hover{background:#29b8e8}
+.btn-secondary{background:var(--grey-bg);color:var(--ink)}
+.btn-secondary:hover{background:#e8e5e3}
+.btn-danger{background:var(--red);color:var(--white)}
+.btn-sm{padding:5px 14px;font-size:12px}
+.btn-xs{padding:3px 10px;font-size:11px}
+.btn-icon{width:32px;height:32px;padding:0;border-radius:6px;background:var(--grey-bg);border:none;cursor:pointer;font-size:14px;display:inline-flex;align-items:center;justify-content:center;transition:all .15s}
+.btn-icon:hover{background:#e0ddd9}
+.btn-outline{background:transparent;border:1.5px solid rgba(13,12,44,.12);color:var(--ink)}
+.btn-outline:hover{border-color:var(--cyan);color:var(--cyan)}
+
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.stat-card.cyan::before{background:var(--cyan)}
+.stat-card.green::before{background:var(--green)}
+.stat-card.orange::before{background:var(--orange)}
+.stat-card.purple::before{background:var(--purple)}
+.stat-icon{font-size:24px;margin-bottom:8px}
+.stat-value{font-size:28px;font-weight:900;letter-spacing:-1px}
+.stat-label{font-size:12px;color:rgba(13,12,44,.45);margin-top:2px}
+.stat-delta{font-size:11px;margin-top:6px;font-weight:500}
+.stat-delta.up{color:var(--green)}
+.stat-delta.down{color:var(--red)}
+
+/* Section header */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-header h2{font-size:15px;font-weight:700}
+.section-actions{display:flex;align-items:center;gap:8px}
+
+/* Search + filter */
+.search-bar{display:flex;align-items:center;gap:8px;background:var(--white);border:1px solid rgba(13,12,44,.12);border-radius:50px;padding:6px 14px;font-size:13px;width:240px;transition:border .15s}
+.search-bar:focus-within{border-color:var(--cyan)}
+.search-bar input{border:none;outline:none;font-family:inherit;font-size:13px;background:transparent;flex:1;color:var(--ink)}
+.search-bar .search-icon{color:rgba(13,12,44,.3);font-size:14px}
+
+/* Table */
+.table-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px}
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:rgba(13,12,44,.35);padding:12px 16px;border-bottom:1px solid rgba(13,12,44,.06);background:rgba(13,12,44,.02);white-space:nowrap}
+.data-table td{padding:13px 16px;border-bottom:1px solid rgba(13,12,44,.04);font-size:13px;vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:rgba(59,199,244,.02)}
+.data-table tr.clickable{cursor:pointer}
+
+/* Status badges */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:50px;font-size:10px;font-weight:700;white-space:nowrap}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.badge-active{background:rgba(19,185,100,.1);color:var(--green)}
+.badge-active::before{background:var(--green)}
+.badge-trial{background:rgba(59,199,244,.1);color:#1a9fd4}
+.badge-trial::before{background:var(--cyan)}
+.badge-suspended{background:rgba(220,50,70,.1);color:var(--red)}
+.badge-suspended::before{background:var(--red)}
+.badge-setup{background:rgba(254,129,26,.1);color:var(--orange)}
+.badge-setup::before{background:var(--orange)}
+.badge-admin{background:rgba(130,74,224,.1);color:var(--purple)}
+.badge-operator{background:rgba(59,199,244,.1);color:#1a9fd4}
+.badge-readonly{background:rgba(13,12,44,.06);color:rgba(13,12,44,.4)}
+
+/* Tenant avatar */
+.tenant-avatar{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--white);flex-shrink:0}
+.tenant-cell{display:flex;align-items:center;gap:10px}
+.tenant-cell .t-name{font-weight:600;font-size:13px}
+.tenant-cell .t-id{font-size:11px;color:rgba(13,12,44,.35);margin-top:1px;font-family:monospace}
+
+/* Usage bar */
+.usage-bar{height:6px;border-radius:3px;background:rgba(13,12,44,.06);overflow:hidden;width:100px}
+.usage-bar-fill{height:100%;border-radius:3px;background:var(--cyan);transition:width .3s}
+.usage-bar-fill.warn{background:var(--orange)}
+.usage-bar-fill.crit{background:var(--red)}
+.usage-cell{display:flex;align-items:center;gap:8px}
+.usage-cell .usage-num{font-size:12px;font-weight:600;min-width:45px}
+
+/* User avatar */
+.user-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--white);flex-shrink:0}
+.user-cell{display:flex;align-items:center;gap:10px}
+.user-cell .u-name{font-weight:600;font-size:13px}
+.user-cell .u-email{font-size:11px;color:rgba(13,12,44,.4);margin-top:1px}
+
+/* Tenant chips (multi-tenant user) */
+.tenant-chips{display:flex;flex-wrap:wrap;gap:4px}
+.tenant-chip{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;color:var(--white)}
+
+/* Last seen */
+.last-seen{font-size:12px;color:rgba(13,12,44,.4)}
+.last-seen.recent{color:var(--green);font-weight:500}
+.last-seen.today{color:var(--cyan);font-weight:500}
+
+/* Tab bar */
+.tab-bar{display:flex;border-bottom:2px solid rgba(13,12,44,.06);margin-bottom:20px}
+.tab{padding:10px 20px;font-size:13px;font-weight:500;color:rgba(13,12,44,.4);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;display:flex;align-items:center;gap:6px}
+.tab:hover{color:rgba(13,12,44,.7)}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.tab-count{background:rgba(13,12,44,.08);color:rgba(13,12,44,.5);padding:1px 7px;border-radius:50px;font-size:10px;font-weight:700}
+.tab.active .tab-count{background:rgba(59,199,244,.15);color:var(--cyan)}
+
+/* View panels */
+.view{display:none}
+.view.active{display:block}
+
+/* Metric mini cards in tenant detail */
+.mini-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.mini-stat{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px}
+.mini-stat .ms-val{font-size:22px;font-weight:900;letter-spacing:-.5px}
+.mini-stat .ms-label{font-size:11px;color:rgba(13,12,44,.4);margin-top:2px}
+
+/* Activity log */
+.activity-list{display:flex;flex-direction:column;gap:0}
+.activity-item{background:var(--white);padding:12px 16px;display:flex;align-items:flex-start;gap:12px;border-bottom:1px solid rgba(13,12,44,.04)}
+.activity-item:last-child{border-bottom:none}
+.activity-item:first-child{border-radius:var(--radius) var(--radius) 0 0}
+.activity-item:last-child{border-radius:0 0 var(--radius) var(--radius)}
+.activity-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.activity-body{flex:1}
+.activity-body .a-text{font-size:13px}
+.activity-body .a-meta{font-size:11px;color:rgba(13,12,44,.35);margin-top:2px}
+.activity-body .a-tenant{font-size:10px;padding:1px 7px;border-radius:4px;background:rgba(13,12,44,.05);font-weight:600;margin-left:4px}
+
+/* Billing summary */
+.billing-period{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.billing-period label{font-size:13px;font-weight:500;color:rgba(13,12,44,.5)}
+.billing-total{background:var(--ink);color:var(--white);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.billing-total .bt-label{font-size:13px;color:rgba(255,255,255,.5)}
+.billing-total .bt-amount{font-size:28px;font-weight:900;color:var(--cyan)}
+
+/* Progress ring placeholder */
+.ring-chart{width:80px;height:80px;border-radius:50%;background:conic-gradient(var(--cyan) 68%, rgba(13,12,44,.08) 0);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ring-inner{width:58px;height:58px;border-radius:50%;background:var(--white);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:var(--ink)}
+
+/* Inline form inputs */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:rgba(13,12,44,.5);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px}
+.input,.select{width:100%;font-family:inherit;font-size:13px;padding:9px 12px;border-radius:var(--radius);border:1px solid rgba(13,12,44,.12);background:var(--white);color:var(--ink);outline:none;transition:border .15s}
+.input:focus,.select:focus{border-color:var(--cyan)}
+
+/* Modal overlay */
+.modal-overlay{position:fixed;inset:0;background:rgba(13,12,44,.4);display:flex;align-items:center;justify-content:center;z-index:100;display:none}
+.modal-overlay.open{display:flex}
+.modal{background:var(--white);border-radius:12px;width:480px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(13,12,44,.2)}
+.modal-header{padding:20px 24px;border-bottom:1px solid rgba(13,12,44,.08);display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-size:16px;font-weight:700}
+.modal-body{padding:20px 24px}
+.modal-footer{padding:16px 24px;border-top:1px solid rgba(13,12,44,.08);display:flex;justify-content:flex-end;gap:8px}
+
+/* Toggle */
+.toggle{position:relative;width:40px;height:22px;cursor:pointer;display:inline-block;flex-shrink:0}
+.toggle input{display:none}
+.toggle .slider{position:absolute;inset:0;background:#ccc;border-radius:11px;transition:.2s}
+.toggle .slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;bottom:3px;background:var(--white);border-radius:50%;transition:.2s}
+.toggle input:checked+.slider{background:var(--green)}
+.toggle input:checked+.slider::before{transform:translateX(18px)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(13,12,44,.04)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-row .tr-label{font-size:13px;font-weight:500}
+.toggle-row .tr-desc{font-size:11px;color:rgba(13,12,44,.4);margin-top:2px}
+
+/* Tenant tag colours */
+.t-uc{background:#1a9fd4}
+.t-ts{background:#824ae0}
+.t-cc{background:#fe811a}
+.t-rr{background:#13b964}
+.t-ds{background:#dc3246}
+.t-lp{background:#f5c518;color:#0d0c2c}
+
+/* Empty state */
+.empty-state{text-align:center;padding:40px;color:rgba(13,12,44,.3)}
+.empty-state .es-icon{font-size:36px;margin-bottom:8px}
+.empty-state p{font-size:13px}
+
+/* Tooltip */
+[data-tip]{position:relative;cursor:help}
+[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--white);font-size:11px;padding:4px 8px;border-radius:4px;white-space:nowrap;z-index:20;margin-bottom:4px;font-weight:400}
+
+/* Divider */
+.divider{height:1px;background:rgba(13,12,44,.06);margin:20px 0}
+
+/* Alert banner */
+.alert-banner{background:rgba(220,50,70,.06);border:1px solid rgba(220,50,70,.15);border-radius:var(--radius);padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:13px;color:var(--red)}
+.info-banner{background:rgba(59,199,244,.06);border:1px solid rgba(59,199,244,.2);border-radius:var(--radius);padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:13px;color:#1a9fd4}
+
+/* Overflow menu */
+.overflow-btn{width:28px;height:28px;border-radius:4px;border:none;background:transparent;cursor:pointer;font-size:16px;color:rgba(13,12,44,.3);display:flex;align-items:center;justify-content:center;transition:all .15s}
+.overflow-btn:hover{background:var(--grey-bg);color:var(--ink)}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo-mark">MC</div>
+    <div>
+      <div class="brand-text">D<em>FRNT</em></div>
+      <div class="brand-sub">Master Controller</div>
+    </div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section-label">Overview</div>
+    <div class="nav-item active" onclick="showView('dashboard')">
+      <span class="nav-icon">📊</span><span class="nav-label">Dashboard</span>
+    </div>
+    <div class="nav-section-label">Management</div>
+    <div class="nav-item" onclick="showView('tenants')">
+      <span class="nav-icon">🏢</span><span class="nav-label">Tenants</span>
+      <span class="nav-badge badge-count">12</span>
+    </div>
+    <div class="nav-item" onclick="showView('users')">
+      <span class="nav-icon">👤</span><span class="nav-label">Users</span>
+      <span class="nav-badge badge-count">9</span>
+    </div>
+    <div class="nav-item" onclick="showView('access')">
+      <span class="nav-icon">🔑</span><span class="nav-label">Access Control</span>
+    </div>
+    <div class="nav-section-label">Billing & Usage</div>
+    <div class="nav-item" onclick="showView('billing')">
+      <span class="nav-icon">💳</span><span class="nav-label">Usage & Billing</span>
+    </div>
+    <div class="nav-section-label">Ops</div>
+    <div class="nav-item" onclick="showView('activity')">
+      <span class="nav-icon">📋</span><span class="nav-label">Audit Log</span>
+      <span class="nav-badge badge-alert">3</span>
+    </div>
+    <div class="nav-item" onclick="showView('health')">
+      <span class="nav-icon">💚</span><span class="nav-label">System Health</span>
+    </div>
+    <div class="nav-item" onclick="showView('link-flow')">
+      <span class="nav-icon">🔗</span><span class="nav-label">Tenant Linking</span>
+    </div>
+    <div class="nav-item" onclick="showView('login-preview')">
+      <span class="nav-icon">🖥️</span><span class="nav-label">Login Experience</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">⚙️</span><span class="nav-label">Settings</span>
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="avatar">GH</div>
+    <div class="user-info">
+      <div class="name">George Hampton</div>
+      <div class="role">Super Admin</div>
+    </div>
+  </div>
+</nav>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 id="page-title">Dashboard</h1>
+      <div class="subtitle" id="page-sub">All tenants · February 2026</div>
+    </div>
+    <div class="topbar-right">
+      <div class="search-bar"><span class="search-icon">🔍</span><input placeholder="Search tenants, users…"></div>
+      <button class="btn btn-primary" onclick="openModal('add-tenant-modal')">+ New Tenant</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══════════ DASHBOARD ══════════ -->
+    <div class="view active" id="view-dashboard">
+      <div class="stats-row">
+        <div class="stat-card cyan">
+          <div class="stat-icon">🏢</div>
+          <div class="stat-value">12</div>
+          <div class="stat-label">Active Tenants</div>
+          <div class="stat-delta up">↑ 2 this month</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-icon">📦</div>
+          <div class="stat-value">48,291</div>
+          <div class="stat-label">Deliveries (Feb)</div>
+          <div class="stat-delta up">↑ 12% vs Jan</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-icon">👤</div>
+          <div class="stat-value">9</div>
+          <div class="stat-label">DFRNT Staff Users</div>
+          <div class="stat-delta">4 multi-tenant</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-icon">⚠️</div>
+          <div class="stat-value">2</div>
+          <div class="stat-label">Needs Attention</div>
+          <div class="stat-delta down">1 trial expiring, 1 error</div>
+        </div>
+      </div>
+
+      <div class="alert-banner">⚠️ <strong>TransSend trial expires in 3 days</strong> — contact Danielle Kruger to convert or extend.</div>
+      <div class="alert-banner">🔴 <strong>CrossRoads Courier API errors</strong> — 23 failed booking attempts in the last hour. <a href="#" style="color:var(--red);text-decoration:underline">View logs →</a></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <!-- Top tenants by volume -->
+        <div>
+          <div class="section-header"><h2>Top Tenants by Volume (Feb)</h2></div>
+          <div class="table-card">
+            <table class="data-table">
+              <thead><tr><th>Tenant</th><th>Deliveries</th><th>vs Last Month</th></tr></thead>
+              <tbody>
+                <tr><td><div class="tenant-cell"><div class="tenant-avatar t-uc">UC</div><div><div class="t-name">Urgent Couriers</div></div></div></td><td><div class="usage-cell"><div class="usage-bar"><div class="usage-bar-fill" style="width:100%"></div></div><span class="usage-num">19,842</span></div></td><td><span style="color:var(--green);font-size:12px;font-weight:600">↑ 8%</span></td></tr>
+                <tr><td><div class="tenant-cell"><div class="tenant-avatar t-ts">TS</div><div><div class="t-name">TransSend</div></div></div></td><td><div class="usage-cell"><div class="usage-bar"><div class="usage-bar-fill" style="width:60%"></div></div><span class="usage-num">11,930</span></div></td><td><span style="color:var(--green);font-size:12px;font-weight:600">↑ 21%</span></td></tr>
+                <tr><td><div class="tenant-cell"><div class="tenant-avatar t-cc">CC</div><div><div class="t-name">CrossRoads</div></div></div></td><td><div class="usage-cell"><div class="usage-bar"><div class="usage-bar-fill warn" style="width:47%"></div></div><span class="usage-num">9,403</span></div></td><td><span style="color:var(--red);font-size:12px;font-weight:600">↓ 4%</span></td></tr>
+                <tr><td><div class="tenant-cell"><div class="tenant-avatar t-rr">RR</div><div><div class="t-name">RushRun</div></div></div></td><td><div class="usage-cell"><div class="usage-bar"><div class="usage-bar-fill" style="width:35%"></div></div><span class="usage-num">6,821</span></div></td><td><span style="color:var(--green);font-size:12px;font-weight:600">↑ 5%</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div>
+          <div class="section-header"><h2>Recent Activity</h2><button class="btn btn-sm btn-outline" onclick="showView('activity')">View all</button></div>
+          <div class="table-card">
+            <div class="activity-list">
+              <div class="activity-item"><div class="activity-dot" style="background:var(--green)"></div><div class="activity-body"><div class="a-text">New tenant <strong>Loop Logistics</strong> created<span class="a-tenant">DFRNT Staff</span></div><div class="a-meta">2 hours ago · George Hampton</div></div></div>
+              <div class="activity-item"><div class="activity-dot" style="background:var(--cyan)"></div><div class="activity-body"><div class="a-text">User <strong>Mike Moraski</strong> granted access to CrossRoads<span class="a-tenant">Access</span></div><div class="a-meta">5 hours ago · George Hampton</div></div></div>
+              <div class="activity-item"><div class="activity-dot" style="background:var(--red)"></div><div class="activity-body"><div class="a-text">Tenant <strong>CrossRoads</strong> API errors flagged<span class="a-tenant">System</span></div><div class="a-meta">1 hour ago · Automated</div></div></div>
+              <div class="activity-item"><div class="activity-dot" style="background:var(--orange)"></div><div class="activity-body"><div class="a-text">Feature flag <strong>SmartParcelCapture</strong> enabled for TransSend<span class="a-tenant">Config</span></div><div class="a-meta">Yesterday · Dane Bonnici</div></div></div>
+              <div class="activity-item"><div class="activity-dot" style="background:var(--purple)"></div><div class="activity-body"><div class="a-text">Billing exported for February — 12 tenants<span class="a-tenant">Billing</span></div><div class="a-meta">Yesterday · George Hampton</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ TENANTS ══════════ -->
+    <div class="view" id="view-tenants">
+      <div class="section-header">
+        <div class="tab-bar" style="margin-bottom:0;border:none">
+          <div class="tab active">All <span class="tab-count">12</span></div>
+          <div class="tab">Active <span class="tab-count">9</span></div>
+          <div class="tab">Trial <span class="tab-count">2</span></div>
+          <div class="tab">Setup <span class="tab-count">1</span></div>
+          <div class="tab">Suspended <span class="tab-count">0</span></div>
+        </div>
+        <div class="section-actions">
+          <select class="select" style="width:auto;padding:7px 12px;font-size:12px">
+            <option>All regions</option><option>NZ</option><option>AU</option><option>US</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="openModal('add-tenant-modal')">+ New Tenant</button>
+        </div>
+      </div>
+      <div class="table-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Tenant</th>
+              <th>Status</th>
+              <th>Region</th>
+              <th>Feb Deliveries</th>
+              <th>Active Users</th>
+              <th>Last Activity</th>
+              <th>DFRNT Staff</th>
+              <th>Plan</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="clickable" onclick="showView('tenant-detail')">
+              <td><div class="tenant-cell"><div class="tenant-avatar t-uc">UC</div><div><div class="t-name">Urgent Couriers</div><div class="t-id">uc-nz-prod</div></div></div></td>
+              <td><span class="badge badge-active">Active</span></td>
+              <td>🇳🇿 NZ</td>
+              <td><div class="usage-cell"><div class="usage-bar"><div class="usage-bar-fill" style="width:100%"></div></div><span class="usage-num">19,842</span></div></td>
+              <td>147</td>
+              <td><span class="last-seen today">Today 09:42</span></td>
+              <td><div class="tenant-chips"><span style="background:#1a9fd4;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;color:#fff">GH</span><span style="background:#824ae0;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;color:#fff">DB</span><span style="background:#13b964;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;color:#fff">MM</span></div></td>
+              <td><span style="font-size:12px;font-weight:600">Enterprise</span></td>
+              <td><button class="overflow-btn">⋯</button></td>
+            </tr>
+            <tr class="clickable">
+              <td><div class="tenant-cell"><div class="tenant-avatar t-ts">TS</div><div><div class="t-name">TransSend</div><div class="t-id">ts-us-prod</div></div></div></td>
+              <td><span class="badge badge-trial">Trial</span></td>
+              <td>🇺🇸 US</td>
+              <td><div class="usage-cell"><div class="usage-bar"><div class="usage-bar-fill" style="width:60%"></div></div><span class="usage-num">11,930</span></div></td>
+              <td>84</td>
+              <td><span class="last-seen today">Today 07:15</span></td>
+              <td><div class="tenant-chips"><span style="background:#1a9fd4;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;color:#fff">GH</span><span style="background:#fe811a;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;color:#fff">SB</span></div></td>
+              <td><span style="font-size:12px;font-weight:600;color:var(--orange)">Trial · 3d left</span></td>
+              <td><button class="overflow-btn">⋯</button></td>
+            </tr>
+            <tr class="clickable">
+              <td><div class="tenant-cell"><div class="tenant-avatar t-cc">CC</div><div><div class="t-name">CrossRoads Courier</div><div class="t-id">cc-us-prod</div></div></div></td>
+              <td><span class="badge badge-active">Active</span></td>
+              <td>🇺🇸 US</td>
+              <td><div class="usage-cell"><div class="usage-bar"><div class="usage-bar-fill warn" style="width:47%"></div></div><span class="usage-num">9,403</span></div></td>
+              <td>62</td>
+              <td><span class="last-seen today">Today 08:51</span></td>
+              <td><div class="tenant-chips"><span style="background:#1a9fd4;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;color:#fff">GH</span></div></td>
+              <td><span style="font-size:12px;font-weight:600">Growth</span></td>
+              <td><button class="overflow-btn">⋯</button></td>
+            </tr>
+            <tr class="clickable">
+              <td><div class="tenant-cell"><div class="tenant-avatar t-rr">RR</div><div><div class="t-name">RushRun</div><div class="t-id">rr-au-prod</div></div></div></td>
+              <td><span class="badge badge-active">Active</span></td>
+              <td>🇦🇺 AU</td>
+              <td><div class="usage-cell"><div class="usage-bar"><div class="usage-bar-fill" style="width:34%"></div></div><span class="usage-num">6,821</span></div></td>
+              <td>41</td>
+              <td><span class="last-seen recent">Yesterday</span></td>
+              <td><div class="tenant-chips"><span style="background:#824ae0;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;color:#fff">DB</span></div></td>
+              <td><span style="font-size:12px;font-weight:600">Starter</span></td>
+              <td><button class="overflow-btn">⋯</button></td>
+            </tr>
+            <tr class="clickable">
+              <td><div class="tenant-cell"><div class="tenant-avatar" style="background:#2a4eff">LP</div><div><div class="t-name">Loop Logistics</div><div class="t-id">ll-nz-staging</div></div></div></td>
+              <td><span class="badge badge-setup">Setup</span></td>
+              <td>🇳🇿 NZ</td>
+              <td><div class="usage-cell"><div class="usage-bar"><div class="usage-bar-fill" style="width:2%"></div></div><span class="usage-num" style="color:rgba(13,12,44,.3)">—</span></div></td>
+              <td>3</td>
+              <td><span class="last-seen">2h ago</span></td>
+              <td><div class="tenant-chips"><span style="background:#1a9fd4;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;color:#fff">GH</span><span style="background:#13b964;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;color:#fff">MM</span></div></td>
+              <td><span style="font-size:12px;font-weight:600;color:rgba(13,12,44,.3)">Onboarding</span></td>
+              <td><button class="overflow-btn">⋯</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════ TENANT DETAIL ══════════ -->
+    <div class="view" id="view-tenant-detail">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+        <button class="btn btn-sm btn-outline" onclick="showView('tenants')">← Tenants</button>
+        <div class="tenant-avatar t-uc" style="width:44px;height:44px;font-size:16px">UC</div>
+        <div>
+          <div style="font-size:18px;font-weight:700">Urgent Couriers</div>
+          <div style="font-size:12px;color:rgba(13,12,44,.4)">uc-nz-prod · Enterprise · <span style="color:var(--green);font-weight:600">Active</span></div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn btn-sm btn-outline">⚙️ Config</button>
+          <button class="btn btn-sm btn-outline">📊 Reports</button>
+          <button class="btn btn-sm btn-primary">Manage Access</button>
+        </div>
+      </div>
+
+      <div class="mini-stats">
+        <div class="mini-stat"><div class="ms-val">19,842</div><div class="ms-label">Deliveries this month</div></div>
+        <div class="mini-stat"><div class="ms-val">147</div><div class="ms-label">Active tenant users</div></div>
+        <div class="mini-stat"><div class="ms-val">$4,165</div><div class="ms-label">Billed this month</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <!-- DFRNT Staff with Access -->
+        <div>
+          <div class="section-header"><h2>DFRNT Staff Access</h2><button class="btn btn-sm btn-primary" onclick="openModal('add-user-modal')">+ Add User</button></div>
+          <div class="table-card">
+            <table class="data-table">
+              <thead><tr><th>User</th><th>Role</th><th>Last Login</th><th></th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="user-cell"><div class="user-avatar" style="background:#1a9fd4">GH</div><div><div class="u-name">George Hampton</div><div class="u-email">george@deliverdifferent.com</div></div></div></td>
+                  <td><span class="badge badge-admin">Admin</span></td>
+                  <td><span class="last-seen today">Today 09:42</span></td>
+                  <td><button class="btn-icon" style="font-size:12px">✏️</button></td>
+                </tr>
+                <tr>
+                  <td><div class="user-cell"><div class="user-avatar" style="background:#824ae0">DB</div><div><div class="u-name">Dane Bonnici</div><div class="u-email">dane@deliverdifferent.com</div></div></div></td>
+                  <td><span class="badge badge-operator">Operator</span></td>
+                  <td><span class="last-seen recent">Yesterday</span></td>
+                  <td><button class="btn-icon" style="font-size:12px">✏️</button></td>
+                </tr>
+                <tr>
+                  <td><div class="user-cell"><div class="user-avatar" style="background:#13b964">MM</div><div><div class="u-name">Mike Moraski</div><div class="u-email">mike@deliverdifferent.com</div></div></div></td>
+                  <td><span class="badge badge-operator">Operator</span></td>
+                  <td><span class="last-seen">3 days ago</span></td>
+                  <td><button class="btn-icon" style="font-size:12px">✏️</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Monthly delivery trend -->
+        <div>
+          <div class="section-header"><h2>Delivery Trend</h2></div>
+          <div class="table-card" style="padding:20px">
+            <!-- Simple bar chart representation -->
+            <div style="display:flex;align-items:flex-end;gap:8px;height:100px;margin-bottom:8px">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+                <div style="flex:1;width:100%;background:rgba(59,199,244,.15);border-radius:4px 4px 0 0;min-height:40px;position:relative;display:flex;align-items:flex-end">
+                  <div style="width:100%;background:var(--cyan);border-radius:4px 4px 0 0;height:65%"></div>
+                </div>
+                <div style="font-size:10px;color:rgba(13,12,44,.35)">Sep</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+                <div style="flex:1;width:100%;background:rgba(59,199,244,.15);border-radius:4px 4px 0 0;position:relative;display:flex;align-items:flex-end">
+                  <div style="width:100%;background:var(--cyan);border-radius:4px 4px 0 0;height:70%"></div>
+                </div>
+                <div style="font-size:10px;color:rgba(13,12,44,.35)">Oct</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+                <div style="flex:1;width:100%;background:rgba(59,199,244,.15);border-radius:4px 4px 0 0;position:relative;display:flex;align-items:flex-end">
+                  <div style="width:100%;background:var(--cyan);border-radius:4px 4px 0 0;height:60%"></div>
+                </div>
+                <div style="font-size:10px;color:rgba(13,12,44,.35)">Nov</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+                <div style="flex:1;width:100%;background:rgba(59,199,244,.15);border-radius:4px 4px 0 0;position:relative;display:flex;align-items:flex-end">
+                  <div style="width:100%;background:var(--cyan);border-radius:4px 4px 0 0;height:55%"></div>
+                </div>
+                <div style="font-size:10px;color:rgba(13,12,44,.35)">Dec</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+                <div style="flex:1;width:100%;background:rgba(59,199,244,.15);border-radius:4px 4px 0 0;position:relative;display:flex;align-items:flex-end">
+                  <div style="width:100%;background:var(--cyan);border-radius:4px 4px 0 0;height:85%"></div>
+                </div>
+                <div style="font-size:10px;color:rgba(13,12,44,.35)">Jan</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+                <div style="flex:1;width:100%;background:rgba(59,199,244,.15);border-radius:4px 4px 0 0;position:relative;display:flex;align-items:flex-end">
+                  <div style="width:100%;background:var(--cyan);border-radius:4px 4px 0 0;height:100%"></div>
+                </div>
+                <div style="font-size:10px;color:rgba(13,12,44,.35)">Feb</div>
+              </div>
+            </div>
+            <div style="font-size:11px;color:rgba(13,12,44,.4);text-align:center">19,842 deliveries in Feb (+8% vs Jan)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs for tenant detail -->
+      <div class="tab-bar" style="margin-bottom:20px">
+        <div class="tab active" onclick="switchDetailTab(this,'detail-overview')">Overview</div>
+        <div class="tab" onclick="switchDetailTab(this,'detail-branding')">🎨 Branding & Logo</div>
+        <div class="tab" onclick="switchDetailTab(this,'detail-flags')">⚙️ Feature Flags</div>
+        <div class="tab" onclick="switchDetailTab(this,'detail-access')">👤 Access</div>
+      </div>
+
+      <!-- Overview sub-tab -->
+      <div class="detail-tab" id="detail-overview">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div>
+            <div class="section-header"><h2>Recent Activity</h2></div>
+            <div class="table-card">
+              <div class="activity-list">
+                <div class="activity-item"><div class="activity-dot" style="background:var(--green)"></div><div class="activity-body"><div class="a-text">19,842 deliveries completed in February</div><div class="a-meta">Feb 28 · Automated</div></div></div>
+                <div class="activity-item"><div class="activity-dot" style="background:var(--cyan)"></div><div class="activity-body"><div class="a-text">Feature flag <strong>SmartParcelCapture</strong> enabled</div><div class="a-meta">Feb 23 · George Hampton</div></div></div>
+                <div class="activity-item"><div class="activity-dot" style="background:var(--orange)"></div><div class="activity-body"><div class="a-text">Logo updated — new Urgent Couriers rebrand</div><div class="a-meta">Feb 10 · George Hampton</div></div></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="section-header"><h2>Quick Actions</h2></div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button class="btn btn-outline" style="justify-content:flex-start;gap:10px" onclick="switchDetailTab(document.querySelector('[onclick*=detail-branding]'),'detail-branding')">🎨 Update logo / branding →</button>
+              <button class="btn btn-outline" style="justify-content:flex-start;gap:10px" onclick="switchDetailTab(document.querySelector('[onclick*=detail-flags]'),'detail-flags')">⚙️ Manage feature flags →</button>
+              <button class="btn btn-outline" style="justify-content:flex-start;gap:10px" onclick="switchDetailTab(document.querySelector('[onclick*=detail-access]'),'detail-access')">👤 Manage staff access →</button>
+              <button class="btn btn-outline" style="justify-content:flex-start;gap:10px" onclick="showView('billing')">💳 View billing / usage →</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /detail-overview -->
+
+      <!-- Access sub-tab -->
+      <div class="detail-tab" id="detail-access" style="display:none">
+        <div class="section-header"><h2>DFRNT Staff Access</h2><button class="btn btn-sm btn-primary" onclick="openModal('link-user-modal')">+ Link User</button></div>
+        <div class="table-card">
+          <table class="data-table">
+            <thead><tr><th>User</th><th>Role</th><th>Last Login</th><th>Deliveries Actioned</th><th></th></tr></thead>
+            <tbody>
+              <tr><td><div class="user-cell"><div class="user-avatar" style="background:#1a9fd4">GH</div><div><div class="u-name">George Hampton</div><div class="u-email">george@deliverdifferent.com</div></div></div></td><td><span class="badge badge-admin">Admin</span></td><td><span class="last-seen today">Today 09:42</span></td><td style="font-size:12px;font-weight:600">—</td><td><button class="btn-icon" style="font-size:12px">✏️</button></td></tr>
+              <tr><td><div class="user-cell"><div class="user-avatar" style="background:#824ae0">DB</div><div><div class="u-name">Dane Bonnici</div><div class="u-email">dane@deliverdifferent.com</div></div></div></td><td><span class="badge badge-operator">Operator</span></td><td><span class="last-seen recent">Yesterday</span></td><td style="font-size:12px;font-weight:600">—</td><td><button class="btn-icon" style="font-size:12px">✏️</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /detail-access -->
+
+      <!-- Branding sub-tab -->
+      <div class="detail-tab" id="detail-branding" style="display:none">
+        <div class="info-banner">ℹ️ Changes propagate to all apps within 30 minutes (S3 logo cache). Company details update immediately via <code style="background:rgba(59,199,244,.15);padding:1px 5px;border-radius:3px">GET /api/tenant/{id}/report-config</code> on the Hub.</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <!-- Left: Logo + colours -->
+          <div>
+            <div class="section-header"><h2>Logo</h2></div>
+            <div class="table-card" style="padding:20px">
+              <!-- Current logo preview -->
+              <div style="margin-bottom:16px">
+                <div style="font-size:11px;font-weight:600;color:rgba(13,12,44,.4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Current Logo</div>
+                <div style="background:var(--grey-bg);border-radius:8px;padding:20px;display:flex;align-items:center;justify-content:center;min-height:80px;border:1px solid rgba(13,12,44,.08)">
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div style="width:48px;height:48px;border-radius:8px;background:var(--ink);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:var(--cyan)">UC</div>
+                    <div>
+                      <div style="font-weight:700;font-size:15px">Urgent Couriers</div>
+                      <div style="font-size:11px;color:rgba(13,12,44,.4)">tenantLogo.png · S3 · 42KB</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Upload drop zone -->
+              <div id="logo-dropzone" style="border:2px dashed rgba(13,12,44,.15);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:all .15s;margin-bottom:12px"
+                ondragover="event.preventDefault();this.style.borderColor='var(--cyan)';this.style.background='rgba(59,199,244,.04)'"
+                ondragleave="this.style.borderColor='rgba(13,12,44,.15)';this.style.background=''"
+                ondrop="handleLogoDrop(event)"
+                onclick="document.getElementById('logo-file-input').click()">
+                <input type="file" id="logo-file-input" accept="image/png,image/jpeg,image/svg+xml" style="display:none" onchange="handleLogoSelect(event)">
+                <div style="font-size:28px;margin-bottom:6px">🖼️</div>
+                <div style="font-size:13px;font-weight:600;color:rgba(13,12,44,.6)">Drop logo here or click to browse</div>
+                <div style="font-size:11px;color:rgba(13,12,44,.35);margin-top:4px">PNG, JPG or SVG · Max 2MB · Recommended: 400×120px</div>
+              </div>
+
+              <!-- Preview after selection -->
+              <div id="logo-preview-container" style="display:none;background:var(--grey-bg);border-radius:8px;padding:16px;margin-bottom:12px;border:1px solid rgba(59,199,244,.3)">
+                <div style="font-size:11px;font-weight:600;color:var(--cyan);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">New logo preview</div>
+                <div style="background:var(--white);border-radius:6px;padding:12px;display:flex;align-items:center;justify-content:center;min-height:60px">
+                  <img id="logo-preview-img" src="" style="max-height:50px;max-width:200px;object-fit:contain">
+                </div>
+                <div id="logo-preview-name" style="font-size:11px;color:rgba(13,12,44,.4);margin-top:8px;text-align:center"></div>
+              </div>
+
+              <button id="logo-upload-btn" class="btn btn-primary" style="width:100%;opacity:.5;pointer-events:none" onclick="simulateLogoUpload()">⬆️ Upload to S3 → All Apps</button>
+
+              <!-- Propagation status -->
+              <div style="margin-top:14px">
+                <div style="font-size:11px;font-weight:600;color:rgba(13,12,44,.4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">App propagation</div>
+                <div style="display:flex;flex-direction:column;gap:4px">
+                  <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid rgba(13,12,44,.04)">
+                    <span>AdminManager</span>
+                    <span style="color:var(--green);font-weight:600">✅ Live</span>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid rgba(13,12,44,.04)">
+                    <span>Booking Portal</span>
+                    <span style="color:var(--green);font-weight:600">✅ Live</span>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid rgba(13,12,44,.04)">
+                    <span>Agent Portal (InboundAgent)</span>
+                    <span style="color:var(--green);font-weight:600">✅ Live</span>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid rgba(13,12,44,.04)">
+                    <span>Drive App (mobile)</span>
+                    <span style="color:var(--green);font-weight:600">✅ Live</span>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:6px 0">
+                    <span>POD PDF Reports</span>
+                    <span style="color:var(--green);font-weight:600">✅ Live</span>
+                  </div>
+                </div>
+                <div style="font-size:10px;color:rgba(13,12,44,.3);margin-top:8px">S3 logo cache: 30 min · Upload clears cache immediately</div>
+              </div>
+            </div>
+
+            <!-- Colours -->
+            <div class="section-header" style="margin-top:4px"><h2>Brand Colours</h2></div>
+            <div class="table-card" style="padding:20px">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <input type="color" value="#0d0c2c" style="width:40px;height:40px;border:none;border-radius:6px;cursor:pointer;padding:2px">
+                  <div>
+                    <div style="font-size:13px;font-weight:600">Primary Colour</div>
+                    <div style="font-size:11px;color:rgba(13,12,44,.4)">Headers, primary buttons <code style="background:rgba(13,12,44,.06);padding:1px 4px;border-radius:3px">#0d0c2c</code></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px">
+                  <input type="color" value="#3bc7f4" style="width:40px;height:40px;border:none;border-radius:6px;cursor:pointer;padding:2px">
+                  <div>
+                    <div style="font-size:13px;font-weight:600">Accent Colour</div>
+                    <div style="font-size:11px;color:rgba(13,12,44,.4)">Links, highlights <code style="background:rgba(13,12,44,.06);padding:1px 4px;border-radius:3px">#3bc7f4</code></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px">
+                  <input type="color" value="#ffffff" style="width:40px;height:40px;border:none;border-radius:6px;cursor:pointer;padding:2px;border:1px solid rgba(13,12,44,.12)">
+                  <div>
+                    <div style="font-size:13px;font-weight:600">Header Text Colour</div>
+                    <div style="font-size:11px;color:rgba(13,12,44,.4)">Text on primary colour background <code style="background:rgba(13,12,44,.06);padding:1px 4px;border-radius:3px">#ffffff</code></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Company details + preview -->
+          <div>
+            <div class="section-header"><h2>Company Details</h2></div>
+            <div class="table-card" style="padding:20px">
+              <div class="field"><label>Company Name</label><input class="input" value="Urgent Couriers"></div>
+              <div class="field"><label>Address Line 1</label><input class="input" value="17 Saleyards Road"></div>
+              <div class="field"><label>Address Line 2</label><input class="input" value="Otahuhu"></div>
+              <div class="field"><label>City</label><input class="input" value="Auckland"></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="field"><label>Postal Code</label><input class="input" value="1010"></div>
+                <div class="field"><label>Country</label><input class="input" value="New Zealand"></div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="field"><label>Phone</label><input class="input" value="+64 9 256 6600"></div>
+                <div class="field"><label>Email</label><input class="input" value="info@urgent.co.nz"></div>
+              </div>
+              <div class="field"><label>Website</label><input class="input" value="https://www.urgent.co.nz"></div>
+            </div>
+
+            <div class="section-header" style="margin-top:4px"><h2>Document Settings</h2></div>
+            <div class="table-card" style="padding:20px">
+              <div class="field"><label>Paper Size</label>
+                <select class="select"><option selected>A4</option><option>Letter</option><option>A3</option></select>
+              </div>
+              <div class="field"><label>Footer Text</label>
+                <input class="input" value="Fast, flexible, and fully tracked — whatever the job, we'll deliver.">
+              </div>
+              <div class="field"><label>Disclaimer Text</label>
+                <input class="input" value="Terms and conditions apply. See urgent.co.nz for details.">
+              </div>
+            </div>
+
+            <!-- Live PDF preview mockup -->
+            <div class="section-header" style="margin-top:4px"><h2>Document Preview</h2></div>
+            <div style="background:var(--white);border-radius:8px;box-shadow:var(--shadow);overflow:hidden">
+              <!-- Fake POD header -->
+              <div style="background:#0d0c2c;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <div style="width:36px;height:36px;background:var(--cyan);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:var(--ink)">UC</div>
+                  <div>
+                    <div style="font-size:13px;font-weight:700;color:#fff">Urgent Couriers</div>
+                    <div style="font-size:10px;color:rgba(255,255,255,.4)">17 Saleyards Road, Auckland 1010</div>
+                  </div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-size:11px;font-weight:700;color:var(--cyan)">PROOF OF DELIVERY</div>
+                  <div style="font-size:10px;color:rgba(255,255,255,.4)">Job #E19842UC</div>
+                </div>
+              </div>
+              <div style="padding:14px 18px">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11px">
+                  <div><div style="font-weight:700;color:rgba(13,12,44,.4);font-size:9px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Delivered to</div><div>John Smith</div><div style="color:rgba(13,12,44,.4)">123 Main St, Auckland</div></div>
+                  <div><div style="font-weight:700;color:rgba(13,12,44,.4);font-size:9px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Delivered by</div><div>Mike C.</div><div style="color:rgba(13,12,44,.4)">Today 14:32</div></div>
+                </div>
+                <div style="margin-top:10px;padding:8px;background:var(--grey-bg);border-radius:4px;font-size:10px;color:rgba(13,12,44,.5);border-left:3px solid var(--cyan)">Fast, flexible, and fully tracked — whatever the job, we'll deliver.</div>
+              </div>
+            </div>
+
+            <div style="margin-top:12px;display:flex;gap:8px">
+              <button class="btn btn-primary" style="flex:1">💾 Save Branding</button>
+              <button class="btn btn-outline">↩️ Reset</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /detail-branding -->
+
+      <!-- Feature Flags sub-tab -->
+      <div class="detail-tab" id="detail-flags" style="display:none">
+        <div class="section-header" style="margin-top:4px"><h2>Feature Flags</h2></div>
+        <div class="table-card" style="padding:16px 20px">
+          <div class="toggle-row"><div><div class="tr-label">Smart Parcel Capture</div><div class="tr-desc">AI-powered item scanning on pickup</div></div><label class="toggle"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="toggle-row"><div><div class="tr-label">Courier GPS Updates</div><div class="tr-desc">Real-time location tracking in Drive app</div></div><label class="toggle"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="toggle-row"><div><div class="tr-label">Courier Lead Capture</div><div class="tr-desc">In-app lead generation for couriers</div></div><label class="toggle"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="toggle-row"><div><div class="tr-label">Live Chat Support</div><div class="tr-desc">In-app support chat widget</div></div><label class="toggle"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="toggle-row"><div><div class="tr-label">Photo on Delivery</div><div class="tr-desc">Require photo capture at delivery step</div></div><label class="toggle"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="toggle-row"><div><div class="tr-label">Signature Capture</div><div class="tr-desc">Require signature at delivery step</div></div><label class="toggle"><input type="checkbox" checked><span class="slider"></span></label></div>
+        </div>
+        <div style="margin-top:12px"><button class="btn btn-primary">💾 Save Feature Flags</button></div>
+      </div><!-- /detail-flags -->
+
+    </div><!-- /view-tenant-detail -->
+
+    <!-- ══════════ USERS ══════════ -->
+    <div class="view" id="view-users">
+      <div class="info-banner">ℹ️ These are DFRNT staff accounts. Each user can be assigned to one or more tenant environments with a specific role per tenant.</div>
+      <div class="section-header">
+        <h2>DFRNT Staff Users</h2>
+        <button class="btn btn-primary btn-sm" onclick="openModal('add-user-modal')">+ Add User</button>
+      </div>
+      <div class="table-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Tenants</th>
+              <th>Last Login</th>
+              <th>Deliveries Actioned</th>
+              <th>Status</th>
+              <th>MFA</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="user-cell"><div class="user-avatar" style="background:#1a9fd4">GH</div><div><div class="u-name">George Hampton</div><div class="u-email">george@deliverdifferent.com</div></div></div></td>
+              <td>
+                <div class="tenant-chips">
+                  <span class="tenant-chip t-uc" data-tip="Admin">UC</span>
+                  <span class="tenant-chip t-ts" data-tip="Admin">TS</span>
+                  <span class="tenant-chip t-cc" data-tip="Admin">CC</span>
+                  <span class="tenant-chip t-rr" data-tip="Operator">RR</span>
+                  <span class="tenant-chip" style="background:#2a4eff" data-tip="Admin">LP</span>
+                </div>
+              </td>
+              <td><span class="last-seen today">Today 09:42</span></td>
+              <td style="font-size:12px;font-weight:600">—</td>
+              <td><span class="badge badge-active">Active</span></td>
+              <td><span style="color:var(--green);font-size:13px" data-tip="MFA enabled">✅</span></td>
+              <td><div style="display:flex;gap:4px"><button class="btn-icon" style="font-size:12px">✏️</button><button class="btn-icon" style="font-size:12px">🔑</button></div></td>
+            </tr>
+            <tr>
+              <td><div class="user-cell"><div class="user-avatar" style="background:#824ae0">DB</div><div><div class="u-name">Dane Bonnici</div><div class="u-email">dane@deliverdifferent.com</div></div></div></td>
+              <td>
+                <div class="tenant-chips">
+                  <span class="tenant-chip t-uc" data-tip="Operator">UC</span>
+                  <span class="tenant-chip t-rr" data-tip="Admin">RR</span>
+                </div>
+              </td>
+              <td><span class="last-seen recent">Yesterday 14:30</span></td>
+              <td style="font-size:12px;font-weight:600">—</td>
+              <td><span class="badge badge-active">Active</span></td>
+              <td><span style="color:var(--green);font-size:13px">✅</span></td>
+              <td><div style="display:flex;gap:4px"><button class="btn-icon" style="font-size:12px">✏️</button><button class="btn-icon" style="font-size:12px">🔑</button></div></td>
+            </tr>
+            <tr>
+              <td><div class="user-cell"><div class="user-avatar" style="background:#13b964">MM</div><div><div class="u-name">Mike Moraski</div><div class="u-email">mike@deliverdifferent.com</div></div></div></td>
+              <td>
+                <div class="tenant-chips">
+                  <span class="tenant-chip t-uc" data-tip="Operator">UC</span>
+                  <span class="tenant-chip" style="background:#2a4eff" data-tip="Operator">LP</span>
+                </div>
+              </td>
+              <td><span class="last-seen">3 days ago</span></td>
+              <td style="font-size:12px;font-weight:600">—</td>
+              <td><span class="badge badge-active">Active</span></td>
+              <td><span style="color:var(--orange);font-size:13px" data-tip="MFA not enabled">⚠️</span></td>
+              <td><div style="display:flex;gap:4px"><button class="btn-icon" style="font-size:12px">✏️</button><button class="btn-icon" style="font-size:12px">🔑</button></div></td>
+            </tr>
+            <tr>
+              <td><div class="user-cell"><div class="user-avatar" style="background:#fe811a">SB</div><div><div class="u-name">Steve Bonnici</div><div class="u-email">steve@urgent.co.nz</div></div></div></td>
+              <td>
+                <div class="tenant-chips">
+                  <span class="tenant-chip t-ts" data-tip="Operator">TS</span>
+                </div>
+              </td>
+              <td><span class="last-seen">5 days ago</span></td>
+              <td style="font-size:12px;font-weight:600">—</td>
+              <td><span class="badge badge-active">Active</span></td>
+              <td><span style="color:var(--green);font-size:13px">✅</span></td>
+              <td><div style="display:flex;gap:4px"><button class="btn-icon" style="font-size:12px">✏️</button><button class="btn-icon" style="font-size:12px">🔑</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════ BILLING ══════════ -->
+    <div class="view" id="view-billing">
+      <div class="billing-period">
+        <label>Billing Period</label>
+        <select class="select" style="width:auto">
+          <option>February 2026</option>
+          <option>January 2026</option>
+          <option>December 2025</option>
+        </select>
+        <button class="btn btn-sm btn-outline">📤 Export CSV</button>
+        <button class="btn btn-sm btn-primary">Generate Invoices</button>
+      </div>
+      <div class="billing-total">
+        <div><div class="bt-label">Total Billable (Feb 2026)</div><div class="bt-amount">$18,420.00</div></div>
+        <div style="text-align:right"><div class="bt-label">48,291 deliveries across 12 tenants</div><div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:4px">Rate: $0.38 avg per delivery</div></div>
+      </div>
+      <div class="table-card">
+        <table class="data-table">
+          <thead>
+            <tr><th>Tenant</th><th>Plan</th><th>Rate</th><th>Deliveries</th><th>Base Fee</th><th>Usage</th><th>Total</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><div class="tenant-cell"><div class="tenant-avatar t-uc" style="width:28px;height:28px;font-size:10px">UC</div><span style="font-weight:600">Urgent Couriers</span></div></td><td>Enterprise</td><td>$0.21</td><td>19,842</td><td>$500</td><td>$4,167</td><td style="font-weight:700">$4,667</td><td><span class="badge badge-active">Invoiced</span></td></tr>
+            <tr><td><div class="tenant-cell"><div class="tenant-avatar t-ts" style="width:28px;height:28px;font-size:10px">TS</div><span style="font-weight:600">TransSend</span></div></td><td>Trial</td><td>$0.00</td><td>11,930</td><td>$0</td><td>$0</td><td style="font-weight:700;color:rgba(13,12,44,.35)">$0</td><td><span class="badge badge-trial">Trial</span></td></tr>
+            <tr><td><div class="tenant-cell"><div class="tenant-avatar t-cc" style="width:28px;height:28px;font-size:10px">CC</div><span style="font-weight:600">CrossRoads</span></div></td><td>Growth</td><td>$0.32</td><td>9,403</td><td>$250</td><td>$3,009</td><td style="font-weight:700">$3,259</td><td><span class="badge badge-active">Invoiced</span></td></tr>
+            <tr><td><div class="tenant-cell"><div class="tenant-avatar t-rr" style="width:28px;height:28px;font-size:10px">RR</div><span style="font-weight:600">RushRun</span></div></td><td>Starter</td><td>$0.45</td><td>6,821</td><td>$150</td><td>$3,069</td><td style="font-weight:700">$3,219</td><td><span class="badge" style="background:rgba(245,197,24,.1);color:#c49a00">Pending</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════ ACTIVITY ══════════ -->
+    <div class="view" id="view-activity">
+      <div class="section-header">
+        <h2>Audit Log</h2>
+        <div class="section-actions">
+          <select class="select" style="width:auto;padding:7px 12px;font-size:12px"><option>All tenants</option><option>Urgent Couriers</option><option>TransSend</option></select>
+          <select class="select" style="width:auto;padding:7px 12px;font-size:12px"><option>All events</option><option>Access changes</option><option>Config changes</option><option>Billing</option><option>System</option></select>
+        </div>
+      </div>
+      <div class="table-card">
+        <table class="data-table">
+          <thead><tr><th>Time</th><th>Event</th><th>Tenant</th><th>User</th><th>Details</th></tr></thead>
+          <tbody>
+            <tr><td><span style="font-size:12px;color:rgba(13,12,44,.4)">Today 09:42</span></td><td><span class="badge" style="background:rgba(220,50,70,.1);color:var(--red)">🔴 API Error</span></td><td>CrossRoads</td><td style="font-size:12px;color:rgba(13,12,44,.4)">System</td><td style="font-size:12px">23 failed booking requests — timeout on /api/book</td></tr>
+            <tr><td><span style="font-size:12px;color:rgba(13,12,44,.4)">Today 08:15</span></td><td><span class="badge" style="background:rgba(19,185,100,.1);color:var(--green)">✅ Access</span></td><td>Loop Logistics</td><td>George Hampton</td><td style="font-size:12px">Mike Moraski granted Operator access</td></tr>
+            <tr><td><span style="font-size:12px;color:rgba(13,12,44,.4)">Today 07:30</span></td><td><span class="badge badge-trial">🏢 Tenant</span></td><td>Loop Logistics</td><td>George Hampton</td><td style="font-size:12px">New tenant created — onboarding started</td></tr>
+            <tr><td><span style="font-size:12px;color:rgba(13,12,44,.4)">Yesterday 16:45</span></td><td><span class="badge" style="background:rgba(59,199,244,.1);color:#1a9fd4">⚙️ Config</span></td><td>TransSend</td><td>Dane Bonnici</td><td style="font-size:12px">Feature flag SmartParcelCapture enabled</td></tr>
+            <tr><td><span style="font-size:12px;color:rgba(13,12,44,.4)">Yesterday 14:00</span></td><td><span class="badge" style="background:rgba(130,74,224,.1);color:var(--purple)">💳 Billing</span></td><td>All</td><td>George Hampton</td><td style="font-size:12px">February billing export generated</td></tr>
+            <tr><td><span style="font-size:12px;color:rgba(13,12,44,.4)">Feb 25 11:20</span></td><td><span class="badge" style="background:rgba(19,185,100,.1);color:var(--green)">✅ Access</span></td><td>Urgent Couriers</td><td>George Hampton</td><td style="font-size:12px">User password reset — Naresh Nathoo</td></tr>
+            <tr><td><span style="font-size:12px;color:rgba(13,12,44,.4)">Feb 24 09:00</span></td><td><span class="badge" style="background:rgba(254,129,26,.1);color:var(--orange)">⚠️ Trial</span></td><td>TransSend</td><td>System</td><td style="font-size:12px">Trial expiry warning sent — 7 days remaining</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════ HEALTH ══════════ -->
+    <div class="view" id="view-health">
+      <div class="section-header"><h2>System Health</h2><span style="font-size:12px;color:rgba(13,12,44,.4)">Last checked: 2 minutes ago</span></div>
+      <div class="table-card">
+        <table class="data-table">
+          <thead><tr><th>Tenant</th><th>API</th><th>Database</th><th>Drive App</th><th>Last Deploy</th><th>Uptime</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div class="tenant-cell"><div class="tenant-avatar t-uc" style="width:28px;height:28px;font-size:10px">UC</div><span style="font-weight:600">Urgent Couriers</span></div></td>
+              <td><span style="color:var(--green);font-weight:600;font-size:12px">✅ 42ms</span></td>
+              <td><span style="color:var(--green);font-weight:600;font-size:12px">✅ OK</span></td>
+              <td><span style="color:var(--green);font-weight:600;font-size:12px">✅ v4.2.1</span></td>
+              <td style="font-size:12px;color:rgba(13,12,44,.4)">2 days ago</td>
+              <td style="font-size:12px;font-weight:600">99.98%</td>
+            </tr>
+            <tr>
+              <td><div class="tenant-cell"><div class="tenant-avatar t-cc" style="width:28px;height:28px;font-size:10px">CC</div><span style="font-weight:600">CrossRoads</span></div></td>
+              <td><span style="color:var(--red);font-weight:600;font-size:12px">🔴 Timeout</span></td>
+              <td><span style="color:var(--green);font-weight:600;font-size:12px">✅ OK</span></td>
+              <td><span style="color:var(--green);font-weight:600;font-size:12px">✅ v4.2.1</span></td>
+              <td style="font-size:12px;color:rgba(13,12,44,.4)">5 days ago</td>
+              <td style="font-size:12px;font-weight:600;color:var(--red)">97.2%</td>
+            </tr>
+            <tr>
+              <td><div class="tenant-cell"><div class="tenant-avatar t-ts" style="width:28px;height:28px;font-size:10px">TS</div><span style="font-weight:600">TransSend</span></div></td>
+              <td><span style="color:var(--green);font-weight:600;font-size:12px">✅ 61ms</span></td>
+              <td><span style="color:var(--green);font-weight:600;font-size:12px">✅ OK</span></td>
+              <td><span style="color:var(--orange);font-weight:600;font-size:12px">⚠️ v4.1.9</span></td>
+              <td style="font-size:12px;color:rgba(13,12,44,.4)">12 days ago</td>
+              <td style="font-size:12px;font-weight:600">99.91%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════ ACCESS ══════════ -->
+    <div class="view" id="view-access">
+      <div class="section-header"><h2>Access Control Matrix</h2><span style="font-size:12px;color:rgba(13,12,44,.4)">Who can access what</span></div>
+      <div class="table-card" style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th style="text-align:center">Urgent Couriers</th>
+              <th style="text-align:center">TransSend</th>
+              <th style="text-align:center">CrossRoads</th>
+              <th style="text-align:center">RushRun</th>
+              <th style="text-align:center">Loop Logistics</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="user-cell"><div class="user-avatar" style="background:#1a9fd4;width:28px;height:28px;font-size:10px">GH</div><span style="font-weight:600">George Hampton</span></div></td>
+              <td style="text-align:center"><span class="badge badge-admin">Admin</span></td>
+              <td style="text-align:center"><span class="badge badge-admin">Admin</span></td>
+              <td style="text-align:center"><span class="badge badge-admin">Admin</span></td>
+              <td style="text-align:center"><span class="badge badge-operator">Operator</span></td>
+              <td style="text-align:center"><span class="badge badge-admin">Admin</span></td>
+            </tr>
+            <tr>
+              <td><div class="user-cell"><div class="user-avatar" style="background:#824ae0;width:28px;height:28px;font-size:10px">DB</div><span style="font-weight:600">Dane Bonnici</span></div></td>
+              <td style="text-align:center"><span class="badge badge-operator">Operator</span></td>
+              <td style="text-align:center"><span class="badge badge-readonly" style="background:rgba(13,12,44,.05);color:rgba(13,12,44,.35)">—</span></td>
+              <td style="text-align:center"><span class="badge badge-readonly" style="background:rgba(13,12,44,.05);color:rgba(13,12,44,.35)">—</span></td>
+              <td style="text-align:center"><span class="badge badge-admin">Admin</span></td>
+              <td style="text-align:center"><span class="badge badge-readonly" style="background:rgba(13,12,44,.05);color:rgba(13,12,44,.35)">—</span></td>
+            </tr>
+            <tr>
+              <td><div class="user-cell"><div class="user-avatar" style="background:#13b964;width:28px;height:28px;font-size:10px">MM</div><span style="font-weight:600">Mike Moraski</span></div></td>
+              <td style="text-align:center"><span class="badge badge-operator">Operator</span></td>
+              <td style="text-align:center"><span class="badge badge-readonly" style="background:rgba(13,12,44,.05);color:rgba(13,12,44,.35)">—</span></td>
+              <td style="text-align:center"><span class="badge badge-readonly" style="background:rgba(13,12,44,.05);color:rgba(13,12,44,.35)">—</span></td>
+              <td style="text-align:center"><span class="badge badge-readonly" style="background:rgba(13,12,44,.05);color:rgba(13,12,44,.35)">—</span></td>
+              <td style="text-align:center"><span class="badge badge-operator">Operator</span></td>
+            </tr>
+            <tr>
+              <td><div class="user-cell"><div class="user-avatar" style="background:#fe811a;width:28px;height:28px;font-size:10px">SB</div><span style="font-weight:600">Steve Bonnici</span></div></td>
+              <td style="text-align:center"><span class="badge badge-readonly" style="background:rgba(13,12,44,.05);color:rgba(13,12,44,.35)">—</span></td>
+              <td style="text-align:center"><span class="badge badge-operator">Operator</span></td>
+              <td style="text-align:center"><span class="badge badge-readonly" style="background:rgba(13,12,44,.05);color:rgba(13,12,44,.35)">—</span></td>
+              <td style="text-align:center"><span class="badge badge-readonly" style="background:rgba(13,12,44,.05);color:rgba(13,12,44,.35)">—</span></td>
+              <td style="text-align:center"><span class="badge badge-readonly" style="background:rgba(13,12,44,.05);color:rgba(13,12,44,.35)">—</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════ TENANT LINKING ══════════ -->
+    <div class="view" id="view-link-flow">
+      <div class="info-banner">ℹ️ Tenant linking uses the <strong>TenantUser</strong> join table in the Master Controller DB. One row = one user's access to one tenant. Roles are stored in <strong>TenantUserSetting</strong>.</div>
+
+      <!-- Data model diagram -->
+      <div class="section-header"><h2>How It Works — Data Model</h2></div>
+      <div class="table-card" style="padding:24px">
+        <div style="display:flex;align-items:flex-start;gap:0;font-family:monospace;font-size:12px;overflow-x:auto">
+          <!-- User box -->
+          <div style="border:2px solid var(--cyan);border-radius:8px;padding:12px 16px;min-width:160px">
+            <div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--cyan);margin-bottom:8px">User</div>
+            <div style="color:rgba(13,12,44,.5);font-size:10px;margin-bottom:2px">🔑 UserId (PK)</div>
+            <div>Email</div>
+            <div>Password (hash)</div>
+            <div>Salt</div>
+            <div style="color:rgba(13,12,44,.5)">CurrentTenantId (FK)</div>
+            <div style="color:rgba(13,12,44,.5)">IsCourier</div>
+          </div>
+          <!-- Arrow -->
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 8px;align-self:center">
+            <div style="font-size:18px;color:rgba(13,12,44,.2)">──</div>
+            <div style="font-size:9px;color:rgba(13,12,44,.3);white-space:nowrap">1 : many</div>
+          </div>
+          <!-- TenantUser box -->
+          <div style="border:2px solid var(--purple);border-radius:8px;padding:12px 16px;min-width:160px;background:rgba(130,74,224,.03)">
+            <div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--purple);margin-bottom:8px">TenantUser</div>
+            <div style="color:rgba(13,12,44,.5);font-size:10px;margin-bottom:2px">🔑 TenantUserId (PK)</div>
+            <div style="color:var(--cyan)">UserId (FK) ←</div>
+            <div style="color:var(--green)">TenantId (FK) →</div>
+            <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(13,12,44,.06);font-size:10px;color:rgba(13,12,44,.4)">UNIQUE(TenantId, UserId)</div>
+          </div>
+          <!-- Arrow -->
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 8px;align-self:center">
+            <div style="font-size:18px;color:rgba(13,12,44,.2)">──</div>
+            <div style="font-size:9px;color:rgba(13,12,44,.3);white-space:nowrap">many : 1</div>
+          </div>
+          <!-- Tenant box -->
+          <div style="border:2px solid var(--green);border-radius:8px;padding:12px 16px;min-width:160px">
+            <div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--green);margin-bottom:8px">Tenant</div>
+            <div style="color:rgba(13,12,44,.5);font-size:10px;margin-bottom:2px">🔑 TenantId (PK)</div>
+            <div>Name</div>
+            <div>DBConnection</div>
+            <div>Code</div>
+            <div>CountryCode</div>
+            <div>TimeZone</div>
+          </div>
+          <!-- Arrow + TenantUserSetting -->
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 8px;align-self:center">
+            <div style="font-size:18px;color:rgba(13,12,44,.2)">──</div>
+            <div style="font-size:9px;color:rgba(13,12,44,.3)">role</div>
+          </div>
+          <div style="border:2px solid var(--orange);border-radius:8px;padding:12px 16px;min-width:180px;background:rgba(254,129,26,.03)">
+            <div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--orange);margin-bottom:8px">TenantUserSetting</div>
+            <div style="color:rgba(13,12,44,.5);font-size:10px;margin-bottom:2px">🔑 TenantUserSettingId</div>
+            <div style="color:var(--cyan)">UserId (FK)</div>
+            <div style="color:var(--green)">TenantId (FK)</div>
+            <div>SettingName</div>
+            <div>SettingValue</div>
+            <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(13,12,44,.06);font-size:10px;color:rgba(13,12,44,.4)">e.g. Role = "Admin"</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <!-- Link a user step by step -->
+        <div>
+          <div class="section-header"><h2>Link User to Tenant</h2></div>
+          <div class="table-card" style="padding:20px">
+            <div style="display:flex;flex-direction:column;gap:0">
+              <!-- Step 1 -->
+              <div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid rgba(13,12,44,.06)">
+                <div style="width:28px;height:28px;border-radius:50%;background:var(--cyan);color:var(--white);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+                <div>
+                  <div style="font-weight:600;font-size:13px;margin-bottom:4px">Select the user</div>
+                  <div style="font-size:12px;color:rgba(13,12,44,.5)">Find or create the DFRNT staff member in the Users list</div>
+                  <div style="margin-top:8px;background:var(--grey-bg);border-radius:6px;padding:8px 12px;font-family:monospace;font-size:11px;color:rgba(13,12,44,.6)">SELECT UserId FROM [User]<br>WHERE Email = 'user@dfrnt.com'</div>
+                </div>
+              </div>
+              <!-- Step 2 -->
+              <div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid rgba(13,12,44,.06)">
+                <div style="width:28px;height:28px;border-radius:50%;background:var(--cyan);color:var(--white);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+                <div>
+                  <div style="font-weight:600;font-size:13px;margin-bottom:4px">Choose the tenant</div>
+                  <div style="font-size:12px;color:rgba(13,12,44,.5)">Select which tenant environment to grant access to</div>
+                  <div style="margin-top:8px;background:var(--grey-bg);border-radius:6px;padding:8px 12px;font-family:monospace;font-size:11px;color:rgba(13,12,44,.6)">SELECT TenantId FROM Tenant<br>WHERE Code = 'ts-us-prod'</div>
+                </div>
+              </div>
+              <!-- Step 3 -->
+              <div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid rgba(13,12,44,.06)">
+                <div style="width:28px;height:28px;border-radius:50%;background:var(--cyan);color:var(--white);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
+                <div>
+                  <div style="font-weight:600;font-size:13px;margin-bottom:4px">Set the role</div>
+                  <div style="font-size:12px;color:rgba(13,12,44,.5)">Role is stored as a TenantUserSetting row</div>
+                  <div style="margin-top:8px;background:var(--grey-bg);border-radius:6px;padding:8px 12px;font-family:monospace;font-size:11px;color:rgba(13,12,44,.6)">-- Admin / Operator / ReadOnly</div>
+                </div>
+              </div>
+              <!-- Step 4 -->
+              <div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid rgba(13,12,44,.06)">
+                <div style="width:28px;height:28px;border-radius:50%;background:var(--cyan);color:var(--white);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">4</div>
+                <div>
+                  <div style="font-weight:600;font-size:13px;margin-bottom:4px">Insert the Master Controller link</div>
+                  <div style="font-size:12px;color:rgba(13,12,44,.5)">Two inserts in the Master Controller DB — TenantUser + TenantUserSetting</div>
+                  <div style="margin-top:8px;background:#0d0c2c;border-radius:6px;padding:10px 12px;font-family:monospace;font-size:11px;color:#3bc7f4">INSERT INTO TenantUser (TenantId, UserId)<br>VALUES (42, 7);<br><br>INSERT INTO TenantUserSetting<br>(TenantId, UserId, SettingName, SettingValue)<br>VALUES (42, 7, 'Role', 'Operator');</div>
+                </div>
+              </div>
+              <!-- Step 5 -->
+              <div style="display:flex;gap:12px;padding:14px 0">
+                <div style="width:28px;height:28px;border-radius:50%;background:var(--green);color:var(--white);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">✓</div>
+                <div>
+                  <div style="font-weight:600;font-size:13px;margin-bottom:4px">Create tblUser in the tenant's own DB <span style="background:rgba(220,50,70,.1);color:var(--red);font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600;margin-left:4px">⚠️ Easy to miss</span></div>
+                  <div style="font-size:12px;color:rgba(13,12,44,.5);margin-bottom:6px">AdminManager reads <code style="background:rgba(13,12,44,.06);padding:1px 4px;border-radius:3px">StaffId</code> from the auth cookie and looks it up in <strong>the tenant's own</strong> <code style="background:rgba(13,12,44,.06);padding:1px 4px;border-radius:3px">tblUser</code>. Without this row, login fails with "User not found."</div>
+                  <div style="background:#0d0c2c;border-radius:6px;padding:10px 12px;font-family:monospace;font-size:10px;color:#3bc7f4;line-height:1.7">
+                    <span style="color:rgba(255,255,255,.3)">-- Run against TARGET tenant's DB</span><br>
+                    INSERT INTO tblUser (<br>
+                    &nbsp;&nbsp;UserName, FullName, Password,<br>
+                    &nbsp;&nbsp;UserGroupId,<br>
+                    &nbsp;&nbsp;<span style="color:#fe811a">StaffId</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:rgba(255,255,255,.3)">-- must match cookie claim</span><br>
+                    &nbsp;&nbsp;Active, InternetAccess, CourierSecurity,<br>
+                    &nbsp;&nbsp;Created, CreatedBy, LastModified, LastModifiedBy<br>
+                    ) VALUES (<br>
+                    &nbsp;&nbsp;'george', 'George Hampton', 'placeholder',<br>
+                    &nbsp;&nbsp;<span style="color:#13b964">@AdminGroupId</span>,<br>
+                    &nbsp;&nbsp;<span style="color:#fe811a">@StaffIdFromUrgentDB</span>,<br>
+                    &nbsp;&nbsp;1, 1, 0,<br>
+                    &nbsp;&nbsp;GETDATE(), 'DFRNT', GETDATE(), 'DFRNT'<br>
+                    );
+                  </div>
+                  <div style="margin-top:8px;background:rgba(254,129,26,.06);border:1px solid rgba(254,129,26,.2);border-radius:6px;padding:8px 10px;font-size:11px;color:var(--orange)">
+                    💡 Get StaffId first: <code style="background:rgba(254,129,26,.1);padding:1px 4px;border-radius:3px">SELECT StaffId FROM tblUser WHERE FullName = 'George Hampton'</code> — run this against Urgent Couriers DB
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:12px">
+            <button class="btn btn-primary" onclick="openModal('link-user-modal')" style="width:100%">+ Link User to Tenant →</button>
+          </div>
+        </div>
+
+        <!-- What happens at login -->
+        <div>
+          <div class="section-header"><h2>What the User Sees at Login</h2></div>
+          <!-- Single tenant login -->
+          <div style="background:#f9f8f7;border-radius:8px;padding:16px;margin-bottom:12px;border:1px solid rgba(13,12,44,.06)">
+            <div style="font-size:11px;font-weight:700;color:rgba(13,12,44,.35);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">1 tenant → direct login</div>
+            <div style="display:flex;align-items:center;gap:8px;background:var(--white);border-radius:6px;padding:10px 12px;font-size:12px">
+              <span style="font-size:18px">⚡</span>
+              <span>Logs in instantly → routed straight to their tenant's app</span>
+            </div>
+          </div>
+          <!-- Multi-tenant picker preview -->
+          <div style="background:#f9f8f7;border-radius:8px;padding:16px;border:1px solid rgba(13,12,44,.06)">
+            <div style="font-size:11px;font-weight:700;color:rgba(13,12,44,.35);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Multiple tenants → picker shown</div>
+            <!-- Mini login UI mockup -->
+            <div style="background:var(--ink);border-radius:8px;padding:16px;color:var(--white)">
+              <div style="text-align:center;margin-bottom:12px">
+                <div style="width:32px;height:32px;background:var(--cyan);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:var(--ink);margin:0 auto 6px">MC</div>
+                <div style="font-weight:700;font-size:14px">Choose account</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">george@deliverdifferent.com</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="background:rgba(59,199,244,.15);border:1px solid rgba(59,199,244,.3);border-radius:6px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer">
+                  <div style="width:28px;height:28px;border-radius:6px;background:#1a9fd4;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">UC</div>
+                  <div><div style="font-size:12px;font-weight:600">Urgent Couriers</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Last accessed today</div></div>
+                  <div style="margin-left:auto;font-size:10px;padding:2px 8px;background:rgba(59,199,244,.2);border-radius:50px;color:var(--cyan)">Admin</div>
+                </div>
+                <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer">
+                  <div style="width:28px;height:28px;border-radius:6px;background:#824ae0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">TS</div>
+                  <div><div style="font-size:12px;font-weight:600">TransSend</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Last accessed 2 days ago</div></div>
+                  <div style="margin-left:auto;font-size:10px;padding:2px 8px;background:rgba(130,74,224,.2);border-radius:50px;color:#c4a0ff">Admin</div>
+                </div>
+                <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer">
+                  <div style="width:28px;height:28px;border-radius:6px;background:#fe811a;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">CC</div>
+                  <div><div style="font-size:12px;font-weight:600">CrossRoads Courier</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Last accessed 5 days ago</div></div>
+                  <div style="margin-left:auto;font-size:10px;padding:2px 8px;background:rgba(254,129,26,.2);border-radius:50px;color:#ffb86b">Operator</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tenant Switcher in-app -->
+      <div class="section-header" style="margin-top:20px"><h2>In-App Tenant Switcher</h2><span style="font-size:12px;color:rgba(13,12,44,.4)">Once logged in, switch tenants without logging out</span></div>
+      <div class="table-card" style="padding:20px">
+        <div style="display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap">
+          <!-- Switcher widget mockup -->
+          <div style="flex-shrink:0">
+            <div style="font-size:11px;font-weight:700;color:rgba(13,12,44,.35);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Sidebar footer widget</div>
+            <div style="width:240px;background:var(--ink);border-radius:8px;padding:12px 14px">
+              <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+                <div style="width:28px;height:28px;border-radius:6px;background:#1a9fd4;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">UC</div>
+                <div style="flex:1"><div style="font-size:12px;font-weight:600;color:#fff">Urgent Couriers</div><div style="font-size:10px;color:rgba(255,255,255,.35)">Current tenant</div></div>
+                <div style="color:rgba(255,255,255,.3);font-size:12px">⇅</div>
+              </div>
+              <div style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08)">
+                <div style="font-size:9px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Switch to</div>
+                <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;cursor:pointer;margin-bottom:2px" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">
+                  <div style="width:20px;height:20px;border-radius:4px;background:#824ae0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff">TS</div>
+                  <span style="font-size:12px;color:rgba(255,255,255,.7)">TransSend</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;cursor:pointer" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">
+                  <div style="width:20px;height:20px;border-radius:4px;background:#fe811a;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff">CC</div>
+                  <span style="font-size:12px;color:rgba(255,255,255,.7)">CrossRoads</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- How it works -->
+          <div style="flex:1;min-width:200px">
+            <div style="font-size:11px;font-weight:700;color:rgba(13,12,44,.35);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">How switching works</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--cyan);font-size:13px;flex-shrink:0">1.</span><span style="font-size:13px">JWT token includes <code style="background:rgba(13,12,44,.06);padding:1px 5px;border-radius:3px;font-size:11px">tenantId</code> claim + list of all accessible <code style="background:rgba(13,12,44,.06);padding:1px 5px;border-radius:3px;font-size:11px">tenantIds</code></span></div>
+              <div style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--cyan);font-size:13px;flex-shrink:0">2.</span><span style="font-size:13px">User clicks switcher → selects target tenant</span></div>
+              <div style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--cyan);font-size:13px;flex-shrink:0">3.</span><span style="font-size:13px">App calls <code style="background:rgba(13,12,44,.06);padding:1px 5px;border-radius:3px;font-size:11px">POST /switch-tenant</code> — no re-authentication</span></div>
+              <div style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--cyan);font-size:13px;flex-shrink:0">4.</span><span style="font-size:13px">New JWT issued with updated <code style="background:rgba(13,12,44,.06);padding:1px 5px;border-radius:3px;font-size:11px">tenantId</code>, updates <code style="background:rgba(13,12,44,.06);padding:1px 5px;border-radius:3px;font-size:11px">CurrentTenantId</code></span></div>
+              <div style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--cyan);font-size:13px;flex-shrink:0">5.</span><span style="font-size:13px">App reloads data using new tenant's DB connection string</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ LOGIN EXPERIENCE ══════════ -->
+    <div class="view" id="view-login-preview">
+      <div class="section-header"><h2>Login Experience Mockups</h2><span style="font-size:12px;color:rgba(13,12,44,.4)">What users see depending on their tenant access</span></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px">
+        <!-- Standard login -->
+        <div>
+          <div style="font-size:12px;font-weight:600;color:rgba(13,12,44,.5);text-align:center;margin-bottom:8px">Step 1 — Login</div>
+          <div style="background:var(--grey-bg);border-radius:12px;padding:24px;border:1px solid rgba(13,12,44,.08)">
+            <div style="text-align:center;margin-bottom:20px">
+              <div style="width:48px;height:48px;background:var(--ink);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px">
+                <div style="width:28px;height:28px;background:var(--cyan);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;color:var(--ink)">MC</div>
+              </div>
+              <div style="font-weight:700;font-size:16px;color:var(--ink)">Sign in to DFRNT</div>
+              <div style="font-size:12px;color:rgba(13,12,44,.4);margin-top:2px">Deliver Different</div>
+            </div>
+            <div style="margin-bottom:12px">
+              <div style="font-size:11px;font-weight:600;color:rgba(13,12,44,.4);margin-bottom:4px">Email address</div>
+              <div style="background:var(--white);border:1px solid rgba(13,12,44,.15);border-radius:6px;padding:9px 12px;font-size:13px;color:rgba(13,12,44,.4)">george@deliverdifferent.com</div>
+            </div>
+            <div style="margin-bottom:16px">
+              <div style="font-size:11px;font-weight:600;color:rgba(13,12,44,.4);margin-bottom:4px">Password</div>
+              <div style="background:var(--white);border:1px solid rgba(13,12,44,.15);border-radius:6px;padding:9px 12px;font-size:13px;color:rgba(13,12,44,.4)">••••••••••</div>
+            </div>
+            <div style="background:var(--cyan);color:var(--white);border-radius:6px;padding:10px;text-align:center;font-weight:600;font-size:13px;cursor:pointer">Sign in →</div>
+            <div style="text-align:center;margin-top:12px;font-size:11px;color:rgba(13,12,44,.35)">Forgot password?</div>
+          </div>
+        </div>
+
+        <!-- Tenant picker -->
+        <div>
+          <div style="font-size:12px;font-weight:600;color:rgba(13,12,44,.5);text-align:center;margin-bottom:8px">Step 2 — Choose Account <span style="font-size:10px;font-weight:400">(multi-tenant users only)</span></div>
+          <div style="background:var(--grey-bg);border-radius:12px;padding:24px;border:1px solid rgba(13,12,44,.08)">
+            <div style="text-align:center;margin-bottom:16px">
+              <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--cyan),var(--purple));border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--white);margin:0 auto 8px">GH</div>
+              <div style="font-weight:700;font-size:15px;color:var(--ink)">Choose account</div>
+              <div style="font-size:11px;color:rgba(13,12,44,.4)">george@deliverdifferent.com</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="background:var(--white);border:1.5px solid var(--cyan);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer">
+                <div style="width:28px;height:28px;border-radius:6px;background:#1a9fd4;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0">UC</div>
+                <div style="flex:1"><div style="font-size:12px;font-weight:600">Urgent Couriers</div><div style="font-size:10px;color:rgba(13,12,44,.35)">Today · Admin</div></div>
+                <span style="font-size:16px;color:var(--cyan)">→</span>
+              </div>
+              <div style="background:var(--white);border:1px solid rgba(13,12,44,.1);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer">
+                <div style="width:28px;height:28px;border-radius:6px;background:#824ae0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0">TS</div>
+                <div style="flex:1"><div style="font-size:12px;font-weight:600">TransSend</div><div style="font-size:10px;color:rgba(13,12,44,.35)">2 days ago · Admin</div></div>
+                <span style="font-size:16px;color:rgba(13,12,44,.2)">→</span>
+              </div>
+              <div style="background:var(--white);border:1px solid rgba(13,12,44,.1);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer">
+                <div style="width:28px;height:28px;border-radius:6px;background:#fe811a;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0">CC</div>
+                <div style="flex:1"><div style="font-size:12px;font-weight:600">CrossRoads</div><div style="font-size:10px;color:rgba(13,12,44,.35)">5 days ago · Operator</div></div>
+                <span style="font-size:16px;color:rgba(13,12,44,.2)">→</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- In app switcher -->
+        <div>
+          <div style="font-size:12px;font-weight:600;color:rgba(13,12,44,.5);text-align:center;margin-bottom:8px">In-app — Tenant Switcher</div>
+          <div style="background:var(--grey-bg);border-radius:12px;padding:16px;border:1px solid rgba(13,12,44,.08)">
+            <!-- Miniature app frame -->
+            <div style="background:var(--white);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)">
+              <div style="background:var(--ink);padding:10px 12px;display:flex;align-items:center;justify-content:space-between">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <div style="width:20px;height:20px;background:var(--cyan);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:var(--ink)">MC</div>
+                  <span style="font-size:11px;font-weight:700;color:#fff">AdminManager</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <div style="background:rgba(255,255,255,.08);border-radius:4px;padding:3px 8px;display:flex;align-items:center;gap:5px;cursor:pointer">
+                    <div style="width:14px;height:14px;border-radius:3px;background:#1a9fd4;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff">UC</div>
+                    <span style="font-size:10px;color:rgba(255,255,255,.8)">Urgent Couriers</span>
+                    <span style="font-size:10px;color:rgba(255,255,255,.3)">⌄</span>
+                  </div>
+                </div>
+              </div>
+              <div style="padding:12px;background:rgba(13,12,44,.02)">
+                <!-- Dropdown open -->
+                <div style="background:var(--white);border-radius:6px;box-shadow:0 4px 16px rgba(13,12,44,.12);overflow:hidden;margin-bottom:8px">
+                  <div style="padding:8px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:rgba(13,12,44,.3);border-bottom:1px solid rgba(13,12,44,.06)">Your tenants</div>
+                  <div style="padding:6px 8px;display:flex;align-items:center;gap:6px;background:rgba(59,199,244,.05);border-left:2px solid var(--cyan)">
+                    <div style="width:18px;height:18px;border-radius:3px;background:#1a9fd4;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff">UC</div>
+                    <span style="font-size:11px;font-weight:600">Urgent Couriers</span>
+                    <span style="margin-left:auto;font-size:9px;color:var(--cyan)">current</span>
+                  </div>
+                  <div style="padding:6px 8px;display:flex;align-items:center;gap:6px;cursor:pointer">
+                    <div style="width:18px;height:18px;border-radius:3px;background:#824ae0;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff">TS</div>
+                    <span style="font-size:11px">TransSend</span>
+                  </div>
+                  <div style="padding:6px 8px;display:flex;align-items:center;gap:6px;cursor:pointer">
+                    <div style="width:18px;height:18px;border-radius:3px;background:#fe811a;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff">CC</div>
+                    <span style="font-size:11px">CrossRoads</span>
+                  </div>
+                </div>
+                <div style="font-size:10px;color:rgba(13,12,44,.3);text-align:center">Click any tenant to switch instantly</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- Modal: Add Tenant -->
+<div class="modal-overlay" id="add-tenant-modal" onclick="closeModal(event,'add-tenant-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3>New Tenant</h3>
+      <button class="btn-icon" onclick="closeModalDirect('add-tenant-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Company Name</label><input class="input" placeholder="e.g. Acme Couriers"></div>
+      <div class="field"><label>Tenant ID (slug)</label><input class="input" placeholder="e.g. acme-nz-prod" style="font-family:monospace"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field"><label>Region</label><select class="select"><option>🇳🇿 New Zealand</option><option>🇦🇺 Australia</option><option>🇺🇸 United States</option></select></div>
+        <div class="field"><label>Plan</label><select class="select"><option>Starter</option><option>Growth</option><option>Enterprise</option><option>Trial (30 days)</option></select></div>
+      </div>
+      <div class="field"><label>Primary Contact Email</label><input class="input" placeholder="admin@acmecouriers.com"></div>
+      <div class="field"><label>Initial DFRNT Staff Access</label><select class="select" multiple style="height:80px"><option selected>George Hampton (Admin)</option><option>Dane Bonnici</option><option>Mike Moraski</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModalDirect('add-tenant-modal')">Cancel</button>
+      <button class="btn btn-primary">Create Tenant →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add User to Tenant -->
+<div class="modal-overlay" id="add-user-modal" onclick="closeModal(event,'add-user-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Grant Access</h3>
+      <button class="btn-icon" onclick="closeModalDirect('add-user-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>User</label><select class="select"><option>George Hampton</option><option>Dane Bonnici</option><option>Mike Moraski</option><option>Steve Bonnici</option><option>+ Create new user</option></select></div>
+      <div class="field"><label>Tenants</label><select class="select" multiple style="height:100px"><option selected>Urgent Couriers</option><option>TransSend</option><option>CrossRoads Courier</option><option>RushRun</option><option>Loop Logistics</option></select></div>
+      <div class="field"><label>Role</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px">
+          <label style="border:1.5px solid rgba(13,12,44,.12);border-radius:8px;padding:10px;cursor:pointer;text-align:center">
+            <input type="radio" name="role" style="display:none">
+            <div style="font-size:20px;margin-bottom:4px">👁️</div>
+            <div style="font-size:12px;font-weight:600">Read-only</div>
+            <div style="font-size:10px;color:rgba(13,12,44,.4)">View data only</div>
+          </label>
+          <label style="border:1.5px solid var(--cyan);border-radius:8px;padding:10px;cursor:pointer;text-align:center;background:rgba(59,199,244,.04)">
+            <input type="radio" name="role" checked style="display:none">
+            <div style="font-size:20px;margin-bottom:4px">⚙️</div>
+            <div style="font-size:12px;font-weight:600">Operator</div>
+            <div style="font-size:10px;color:rgba(13,12,44,.4)">Manage + configure</div>
+          </label>
+          <label style="border:1.5px solid rgba(13,12,44,.12);border-radius:8px;padding:10px;cursor:pointer;text-align:center">
+            <input type="radio" name="role" style="display:none">
+            <div style="font-size:20px;margin-bottom:4px">🔑</div>
+            <div style="font-size:12px;font-weight:600">Admin</div>
+            <div style="font-size:10px;color:rgba(13,12,44,.4)">Full access</div>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModalDirect('add-user-modal')">Cancel</button>
+      <button class="btn btn-primary">Grant Access</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Link User to Tenant -->
+<div class="modal-overlay" id="link-user-modal" onclick="closeModal(event,'link-user-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🔗 Link User to Tenant</h3>
+      <button class="btn-icon" onclick="closeModalDirect('link-user-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-banner" style="font-size:12px">Inserts a row into <strong>TenantUser</strong> + a <strong>TenantUserSetting</strong> role row in the Master Controller DB.</div>
+      <div class="field"><label>User</label>
+        <select class="select">
+          <option>George Hampton — george@deliverdifferent.com</option>
+          <option>Dane Bonnici — dane@deliverdifferent.com</option>
+          <option>Mike Moraski — mike@deliverdifferent.com</option>
+          <option>Steve Bonnici — steve@urgent.co.nz</option>
+          <option>+ Create new user account</option>
+        </select>
+      </div>
+      <div class="field"><label>Tenant(s) to link</label>
+        <select class="select" multiple style="height:110px">
+          <option>Urgent Couriers (uc-nz-prod)</option>
+          <option selected>TransSend (ts-us-prod)</option>
+          <option>CrossRoads Courier (cc-us-prod)</option>
+          <option>RushRun (rr-au-prod)</option>
+          <option>Loop Logistics (ll-nz-staging)</option>
+        </select>
+      </div>
+      <div class="field"><label>Role on linked tenants</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px">
+          <label style="border:1.5px solid rgba(13,12,44,.12);border-radius:8px;padding:10px;cursor:pointer;text-align:center">
+            <input type="radio" name="link-role" style="display:none">
+            <div style="font-size:18px;margin-bottom:4px">👁️</div>
+            <div style="font-size:12px;font-weight:600">Read-only</div>
+            <div style="font-size:10px;color:rgba(13,12,44,.4)">View data only</div>
+          </label>
+          <label style="border:1.5px solid var(--cyan);border-radius:8px;padding:10px;cursor:pointer;text-align:center;background:rgba(59,199,244,.04)">
+            <input type="radio" name="link-role" checked style="display:none">
+            <div style="font-size:18px;margin-bottom:4px">⚙️</div>
+            <div style="font-size:12px;font-weight:600">Operator</div>
+            <div style="font-size:10px;color:rgba(13,12,44,.4)">Manage + configure</div>
+          </label>
+          <label style="border:1.5px solid rgba(13,12,44,.12);border-radius:8px;padding:10px;cursor:pointer;text-align:center">
+            <input type="radio" name="link-role" style="display:none">
+            <div style="font-size:18px;margin-bottom:4px">🔑</div>
+            <div style="font-size:12px;font-weight:600">Admin</div>
+            <div style="font-size:10px;color:rgba(13,12,44,.4)">Full access</div>
+          </label>
+        </div>
+      </div>
+      <div style="background:#0d0c2c;border-radius:6px;padding:12px 14px;margin-top:4px">
+        <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">SQL that will run — Master Controller DB</div>
+        <div style="font-family:monospace;font-size:11px;color:#3bc7f4;line-height:1.8">
+          INSERT INTO TenantUser (TenantId, UserId)<br>
+          VALUES (<span style="color:var(--green)">&lt;TenantId&gt;</span>, <span style="color:var(--cyan)">&lt;UserId&gt;</span>);<br><br>
+          INSERT INTO TenantUserSetting<br>
+          &nbsp;&nbsp;(TenantId, UserId, SettingName, SettingValue)<br>
+          VALUES (<span style="color:var(--green)">&lt;TenantId&gt;</span>, <span style="color:var(--cyan)">&lt;UserId&gt;</span>, 'Role', 'Operator');
+        </div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)">
+          <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">⚠️ Also runs against each tenant's own DB</div>
+          <div style="font-family:monospace;font-size:10px;color:#fe811a;line-height:1.7">
+            INSERT INTO tblUser<br>
+            &nbsp;&nbsp;(UserName, FullName, Password, UserGroupId,<br>
+            &nbsp;&nbsp;&nbsp;<span style="color:#f5c518">StaffId</span>, Active, InternetAccess, CourierSecurity,<br>
+            &nbsp;&nbsp;&nbsp;Created, CreatedBy, LastModified, LastModifiedBy)<br>
+            VALUES<br>
+            &nbsp;&nbsp;('george', 'George Hampton', 'placeholder', <span style="color:#13b964">&lt;AdminGroupId&gt;</span>,<br>
+            &nbsp;&nbsp;&nbsp;<span style="color:#f5c518">&lt;StaffIdFromUrgentDB&gt;</span>, 1, 1, 0,<br>
+            &nbsp;&nbsp;&nbsp;GETDATE(), 'DFRNT', GETDATE(), 'DFRNT');
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModalDirect('link-user-modal')">Cancel</button>
+      <button class="btn btn-primary">🔗 Link User →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  
+  const view = document.getElementById('view-' + name);
+  if (view) view.classList.add('active');
+
+  const titles = {
+    dashboard: ['Dashboard', 'All tenants · February 2026'],
+    tenants: ['Tenants', '12 tenants · all regions'],
+    users: ['Users', '9 DFRNT staff accounts'],
+    access: ['Access Control', 'Permission matrix'],
+    billing: ['Usage & Billing', 'February 2026'],
+    activity: ['Audit Log', 'All events'],
+    health: ['System Health', 'Live status'],
+    'tenant-detail': ['Urgent Couriers', 'uc-nz-prod · Enterprise'],
+    'link-flow': ['Tenant Linking', 'How user-tenant linking works'],
+    'login-preview': ['Login Experience', 'What users see at login']
+  };
+  
+  if (titles[name]) {
+    document.getElementById('page-title').textContent = titles[name][0];
+    document.getElementById('page-sub').textContent = titles[name][1];
+  }
+  
+  // Highlight nav
+  const navMap = {
+    dashboard: 0, tenants: 1, users: 2, access: 3,
+    billing: 4, activity: 5, health: 6,
+    'tenant-detail': 1, 'link-flow': 7, 'login-preview': 8
+  };
+  const navItems = document.querySelectorAll('.nav-item');
+  const idx = navMap[name];
+  if (idx !== undefined && navItems[idx]) navItems[idx].classList.add('active');
+}
+
+function switchDetailTab(el, tabId) {
+  document.querySelectorAll('.detail-tab').forEach(t => t.style.display = 'none');
+  document.getElementById(tabId).style.display = 'block';
+  document.querySelectorAll('.tab-bar .tab').forEach(t => t.classList.remove('active'));
+  if (el && el.classList) el.classList.add('active');
+}
+
+function handleLogoDrop(e) {
+  e.preventDefault();
+  document.getElementById('logo-dropzone').style.borderColor = 'rgba(13,12,44,.15)';
+  document.getElementById('logo-dropzone').style.background = '';
+  const file = e.dataTransfer.files[0];
+  if (file) showLogoPreview(file);
+}
+
+function handleLogoSelect(e) {
+  const file = e.target.files[0];
+  if (file) showLogoPreview(file);
+}
+
+function showLogoPreview(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('logo-preview-img').src = e.target.result;
+    document.getElementById('logo-preview-name').textContent = file.name + ' · ' + (file.size/1024).toFixed(1) + 'KB';
+    document.getElementById('logo-preview-container').style.display = 'block';
+    const btn = document.getElementById('logo-upload-btn');
+    btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
+  };
+  reader.readAsDataURL(file);
+}
+
+function simulateLogoUpload() {
+  const btn = document.getElementById('logo-upload-btn');
+  btn.textContent = '⏳ Uploading…'; btn.style.opacity = '.7'; btn.style.pointerEvents = 'none';
+  setTimeout(() => {
+    btn.textContent = '✅ Uploaded — cache cleared, all apps updating';
+    btn.style.background = 'var(--green)';
+    // Update current logo preview
+    const preview = document.getElementById('logo-preview-img').src;
+    document.querySelector('#detail-branding .tenant-avatar') && 
+      (document.querySelector('#detail-branding .tenant-avatar').style.backgroundImage = `url(${preview})`);
+  }, 1800);
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(e, id) {
+  if (e.target.classList.contains('modal-overlay')) document.getElementById(id).classList.remove('open');
+}
+function closeModalDirect(id) {
+  document.getElementById(id).classList.remove('open');
+}
+</script>
+</body>
+</html>
